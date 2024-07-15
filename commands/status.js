@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { rawEmb } = require('../index');
+const { EmbedBuilder } = require('discord.js');
 const config = require('../config'); // Import config
 
 module.exports = {
@@ -33,20 +33,37 @@ module.exports = {
 
     async execute(interaction) {
         const { colors } = interaction.client;
-        let emb = rawEmb();
+        let emb = new EmbedBuilder();
         let type = interaction.options.getString('type');
         let text = interaction.options.getString('text');
         let status = interaction.options.getString('status');
 
         if (interaction.user.id !== config.ownerID) {
-            return interaction.reply({ embeds: [emb.setDescription("You are not authorized to use this command").setColor(colors.error)], ephemeral: true });
+            return interaction.reply({
+                embeds: [emb.setDescription("You are not authorized to use this command").setColor(colors.error)],
+                ephemeral: true
+            });
         }
 
+        // Set the new presence
         interaction.client.user.setPresence({
             activities: [{ name: text, type: type }],
             status: status
         });
 
-        return interaction.reply({ embeds: [emb.setDescription(`**Changed status to:** \n ${type} ${text} (${status})`).setColor(colors.success)] });
+        // Get the current presence
+        const currentPresence = interaction.client.user.presence;
+        const currentActivity = currentPresence.activities[0];
+
+        // Create a response embed with the current presence
+        emb.setDescription(`**Changed status to:**\nType: ${type}\nText: ${text}\nStatus: ${status}`)
+           .setColor(colors.success)
+           .addFields(
+               { name: 'Current Type', value: currentActivity ? currentActivity.type : 'None', inline: true },
+               { name: 'Current Text', value: currentActivity ? currentActivity.name : 'None', inline: true },
+               { name: 'Current Status', value: currentPresence.status, inline: true }
+           );
+
+        return interaction.reply({ embeds: [emb] });
     }
 };
