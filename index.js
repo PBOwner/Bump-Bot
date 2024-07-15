@@ -1,4 +1,5 @@
-const fs = require("fs");
+const fs = require("fs"); // Import the fs module
+const { join } = require("path");
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, MessageActionRow, MessageButton } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
