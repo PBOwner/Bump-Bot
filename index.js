@@ -221,9 +221,25 @@ client.on('interactionCreate', async interaction => {
             guild.blocked = true;
             await guild.save();
 
-            await interaction.reply({ content: 'Server blocked from using the bot.', ephemeral: true });
+            const row = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('unblock')
+                        .setLabel('Unblock')
+                        .setStyle(ButtonStyle.Secondary)
+                );
+
+            await interaction.update({ content: 'Server approved. You can unblock it if needed.', components: [row], ephemeral: true });
         } else if (interaction.customId === 'deny') {
             await interaction.reply({ content: 'Report dismissed.', ephemeral: true });
+        } else if (interaction.customId === 'unblock') {
+            const embed = interaction.message.embeds[0];
+            const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
+            const guild = await interaction.client.database.server_cache.getGuild(guildId);
+            guild.blocked = false;
+            await guild.save();
+
+            await interaction.reply({ content: 'Server unblocked successfully.', ephemeral: true });
         }
     }
 });
