@@ -60,25 +60,33 @@ module.exports = {
             });
         }
 
-        // Set the new presence
-        interaction.client.user.setPresence({
-            activities: [{ name: text, type: type }],
-            status: status
-        });
+        try {
+            // Set the new presence
+            interaction.client.user.setPresence({
+                activities: [{ name: text, type: type }],
+                status: status
+            });
 
-        // Get the current presence
-        const currentPresence = interaction.client.user.presence;
-        const currentActivity = currentPresence.activities[0];
+            // Get the current presence
+            const currentPresence = interaction.client.user.presence;
+            const currentActivity = currentPresence.activities[0];
 
-        // Create a response embed with the current presence
-        emb.setDescription(`**Changed status to:**\nType: ${type}\nText: ${text}\nStatus: ${status}`)
-           .setColor(colors.success)
-           .addFields(
-               { name: 'Current Type', value: currentActivity ? currentActivity.type : 'None', inline: true },
-               { name: 'Current Text', value: currentActivity ? currentActivity.name : 'None', inline: true },
-               { name: 'Current Status', value: currentPresence.status, inline: true }
-           );
+            // Create a response embed with the current presence
+            emb.setDescription(`**Changed status to:**\nType: ${type}\nText: ${text}\nStatus: ${status}`)
+               .setColor(colors.success)
+               .addFields(
+                   { name: 'Current Type', value: currentActivity ? currentActivity.type : 'None', inline: true },
+                   { name: 'Current Text', value: currentActivity ? currentActivity.name : 'None', inline: true },
+                   { name: 'Current Status', value: currentPresence.status, inline: true }
+               );
 
-        return interaction.reply({ embeds: [emb] });
+            return interaction.reply({ embeds: [emb] });
+        } catch (error) {
+            console.error('Error setting presence:', error);
+            return interaction.reply({
+                embeds: [emb.setDescription("Failed to set status").setColor(colors.error)],
+                ephemeral: true
+            });
+        }
     }
 };
