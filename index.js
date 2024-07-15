@@ -1,3 +1,18 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('example')
+        .setDescription('An example command'),
+    async execute(interaction) {
+        await interaction.reply('This is an example command!');
+    },
+};
+```
+
+Make sure all your command files follow this structure. Additionally, you can add some error handling to log which file is causing the issue. Here's how you can modify your code to include this:
+
+```javascript
 const fs = require("fs");
 const { join } = require("path");
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder } = require("discord.js");
@@ -24,14 +39,12 @@ const emotes = {
     bot: '',
     user: ''
 }
-
 const supportGuildId = ''
 const supportGuildLogChannelId = ''
 // Specify your bot token
 const Bottoken = ''
 // Insert your user ID if you want to use the status command
 const ownerID = ""
-
 const rawEmb = () => {
     return new EmbedBuilder()
         .setColor(colors.info);
@@ -99,9 +112,17 @@ const commandFiles = fs
     .filter(file => file.endsWith(".js"));
 const commands = [];
 for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    client.commands.set(command.data.name, command);
-    commands.push(command.data.toJSON());
+    try {
+        const command = require(`./commands/${file}`);
+        if (!command.data || !command.data.name) {
+            console.error(`The command at './commands/${file}' is missing a required "data" or "name" property.`);
+            continue;
+        }
+        client.commands.set(command.data.name, command);
+        commands.push(command.data.toJSON());
+    } catch (error) {
+        console.error(`Error loading command at './commands/${file}':`, error);
+    }
 }
 // Register slash commands
 const rest = new REST({ version: '9' }).setToken(Bottoken);
