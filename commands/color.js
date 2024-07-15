@@ -1,33 +1,31 @@
-const { Message } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { rawEmb } = require('../index');
 
 module.exports = {
-    name: 'color',
-    syntax: 'color #000000',
-    args: true,
-    description: 'Change your bump embed color',
-    perm: 'ADMINISTRATOR',
-    commands: ['color', 'setcolor'],
+    data: new SlashCommandBuilder()
+        .setName('color')
+        .setDescription('Change your bump embed color')
+        .addStringOption(option =>
+            option.setName('color')
+                .setDescription('The hex color code to set')
+                .setRequired(true)),
 
-    /**
-     * @param {Message} msg
-     * @param {String[]} args
-     */
-    async execute(msg, args) {
-        const { colors, emotes } = msg.client;
+    async execute(interaction) {
+        const { colors } = interaction.client;
         let emb = rawEmb();
+        let color = interaction.options.getString('color');
 
-        if (args[0].startsWith('#')) {
-            var color = args[0].slice(1);
-        } else {
+        if (!color.startsWith('#')) {
             emb.setDescription("**You need to enter a hex color code qwq**");
-            return msg.channel.send({ embeds: [emb.setColor(colors.error)] });
+            return interaction.reply({ embeds: [emb.setColor(colors.error)], ephemeral: true });
         }
 
-        let guild = await msg.client.database.server_cache.getGuild(msg.guild.id);
+        color = color.slice(1);
+
+        let guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
         guild.color = color;
         await guild.save();
 
-        return msg.channel.send({ embeds: [emb.setDescription("**Changed color successfully**").setColor(colors.success)] });
+        return interaction.reply({ embeds: [emb.setDescription("**Changed color successfully**").setColor(colors.success)] });
     }
 };
