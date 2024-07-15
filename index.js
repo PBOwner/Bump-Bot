@@ -286,4 +286,4 @@ client.on('interactionCreate', async interaction => {
             await interaction.reply({ content: 'Server unblocked successfully.', ephemeral: true });
         }
     }
-}
+});
