@@ -18,28 +18,26 @@ module.exports = {
 
         let commandName = interaction.options.getString('command');
         if (commandName) {
-            var command = interaction.client.commands.find(cmd => cmd.commands.includes(commandName.toLowerCase()));
+            let command = interaction.client.commands.get(commandName.toLowerCase());
             if (!command) {
                 emb.setTitle("Command not found qwq");
                 return interaction.reply({ embeds: [emb], ephemeral: true });
             }
-            emb.setTitle(command.name)
+            emb.setTitle(command.data.name)
                 .addFields(
-                    { name: "**Syntax:**", value: command.syntax },
-                    { name: "**Description:**", value: command.description }
-                )
-                .setFooter({ text: "Trigger: " + command.commands.join(', ') });
+                    { name: "**Description:**", value: command.data.description || 'No description available.' },
+                    { name: "**Usage:**", value: `/${command.data.name}` }
+                );
 
             interaction.reply({ embeds: [emb], ephemeral: true });
         } else {
-            let A = [];
-            for (let cmd of interaction.client.commands) {
-                let command = cmd[1];
-                A.push(` **${command.name}** \`%${command.syntax}\`\n ----------------------------------\n`);
+            let commandList = [];
+            for (let [name, cmd] of interaction.client.commands) {
+                commandList.push(`**${cmd.data.name}** - ${cmd.data.description || 'No description available.'}`);
             }
-            emb.setDescription(A.join(" ") + `\n [Github](${githubLink})`)
+            emb.setDescription(commandList.join("\n") + `\n\n[Github](${githubLink})`)
                 .setTitle('My Commands');
-            interaction.reply({ embeds: [emb.setFooter({ text: `Type %help <command> for more || ${A.length} Commands` })], ephemeral: true });
+            interaction.reply({ embeds: [emb.setFooter({ text: `Type /help <command> for more details || ${commandList.length} Commands` })], ephemeral: true });
         }
     }
 };
