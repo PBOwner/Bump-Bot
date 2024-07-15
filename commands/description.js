@@ -1,32 +1,27 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
 const { rawEmb } = require('../index');
 
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('description')
-        .setDescription('Change your server description')
-        .addStringOption(option =>
-            option.setName('text')
-                .setDescription('The description text to set')
-                .setRequired(true)),
+    name: 'description',
+    description: 'Change your server description',
+    syntax: '-description <text>',
 
-    async execute(interaction) {
-        const { colors } = interaction.client;
+    async execute(message, args) {
+        const { colors } = message.client;
         let emb = rawEmb();
-        let text = interaction.options.getString('text');
+        let text = args.join(' ');
 
         if (text.length > 4000) {
             emb.setDescription("**Sorry, but you can only use 4000 Characters for your description!**");
-            return interaction.reply({ embeds: [emb.setColor(colors.error)], ephemeral: true });
+            return message.channel.send({ embeds: [emb.setColor(colors.error)] });
         }
 
-        let guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
+        let guild = await message.client.database.server_cache.getGuild(message.guild.id);
         guild.description = text;
         await guild.save();
 
-        emb.setFooter({ text: "Use #preview to see your text" });
+        emb.setFooter({ text: "Use /preview to see your text" });
 
         // Use the text as-is for the embed description to support multi-line automatically
-        return interaction.reply({ embeds: [emb.setDescription("**Changed description successfully to:** \n" + text).setColor(colors.success)] });
+        return message.channel.send({ embeds: [emb.setDescription("**Changed description successfully to:** \n" + text).setColor(colors.success)] });
     }
 };
