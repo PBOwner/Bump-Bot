@@ -19,6 +19,7 @@ const Bottoken = ''; // Specify your bot token
 const ownerID = ''; // Insert your user ID if you want to use the status command
 const reportChannelId = ''; // Add the report channel ID
 const supportInviteLink = 'https://discord.gg/yourSupportInviteLink'; // Add your fixed support server invite link
+const reportApprovalRoleId = ''; // Add the role ID that can approve or deny reports
 
 module.exports = {
     colors,
@@ -28,5 +29,6 @@ module.exports = {
     Bottoken,
     ownerID,
     reportChannelId,
-    supportInviteLink // Export the support invite link
+    supportInviteLink, // Export the support invite link
+    reportApprovalRoleId // Export the report approval role ID
 };
