@@ -65,6 +65,7 @@ module.exports = {
             return interaction.reply({ embeds: [emb], ephemeral: true });
         } else {
             guild.time = now;
+            guild.lastBumper = interaction.user.id; // Store the user ID of the last person who bumped
             await guild.save();
             const count = await module.exports.bump(interaction.guild.id, interaction.guild.name, interaction, interaction.user, interaction.client.emotes, interaction.client.colors); // Pass the user object
             emb.setDescription(`**Bumped successfully to ${count} Server${count === 1 ? '' : 's'}**`)
@@ -86,11 +87,11 @@ module.exports = {
 
                 try {
                     const bumpChannel = interaction.client.channels.cache.get(guild.channel);
-                    await bumpChannel.send({ embeds: [reminderEmbed] });
+                    await bumpChannel.send({ content: `<@${guild.lastBumper}>`, embeds: [reminderEmbed] });
                     await bumpChannel.send({ components: [new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId('bump')
-                            .setLabel('Bump')
+                            .setLabel('Bump Again')
                             .setStyle(ButtonStyle.Success)
                     )] });
                 } catch (error) {
