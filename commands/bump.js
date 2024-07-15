@@ -101,7 +101,7 @@ module.exports = {
     },
 
     // Export the bump function
-    bump: async function (id, title, interaction, user, emotes, colors) {
+    bump: async function bump(id, title, interaction, user, emotes, colors) {
         var G = await interaction.client.database.server_cache.getGuild(id);
         let invite = await interaction.channel.createInvite({});
         let emb = rawEmb();
@@ -131,7 +131,7 @@ module.exports = {
                     .setStyle(ButtonStyle.Danger),
                 new ButtonBuilder()
                     .setCustomId('bump')
-                    .setLabel('Bump')
+                    .setLabel('Bump Again')
                     .setStyle(ButtonStyle.Success) // Green button to bump again
             );
 
