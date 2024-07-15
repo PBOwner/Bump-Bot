@@ -240,6 +240,10 @@ client.on('interactionCreate', async interaction => {
                 await interaction.update({ content: 'Report dismissed.', components: [] });
             }
         } else if (interaction.customId === 'unblock') {
+            if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
+                return interaction.reply({ content: 'You do not have permission to unblock servers.', ephemeral: true });
+            }
+
             const embed = interaction.message.embeds[0];
             const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
             const guild = await interaction.client.database.server_cache.getGuild(guildId);
