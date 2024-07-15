@@ -26,6 +26,9 @@ module.exports = {
 
         emb.setFooter({ text: "Use #preview to see your text" });
 
-        return interaction.reply({ embeds: [emb.setDescription("**Changed description successfully to:** \n" + text).setColor(colors.success)] });
+        // Replace newline characters with actual new lines in the embed description
+        const formattedText = text.replace(/\\n/g, '\n');
+
+        return interaction.reply({ embeds: [emb.setDescription("**Changed description successfully to:** \n" + formattedText).setColor(colors.success)] });
     }
 };
