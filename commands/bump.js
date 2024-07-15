@@ -12,9 +12,15 @@ module.exports = {
             await interaction.deferReply({ ephemeral: true });
 
             const { colors, emotes } = interaction.client;
-
             let embed = new EmbedBuilder();
             var guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
+
+            // Check if the server is blocked
+            if (guild.blocked) {
+                embed.setColor(colors.error)
+                    .setDescription("This server is blocked from using the bump command.");
+                return interaction.editReply({ embeds: [embed] });
+            }
 
             if (!guild.description) {
                 embed.setDescription("This Server has no description! please set one qwq");
@@ -43,13 +49,19 @@ module.exports = {
                 }
             }
 
-            let invite;
-            try {
-                invite = await interaction.channel.createInvite({
-                    maxAge: 86400
-                }, `Bump Invite`);
-            } catch {
-                return interaction.editReply({ embeds: [embed.setDescription("**Can't create my invite link qwq**").setColor(colors.error)] });
+            // Check if the invite link already exists
+            let invite = guild.invite;
+            if (!invite) {
+                try {
+                    invite = await interaction.channel.createInvite({
+                        maxAge: 0, // Permanent invite
+                        unique: true
+                    }, `Bump Invite`);
+                    guild.invite = invite.code; // Store the invite code in the database
+                    await guild.save();
+                } catch {
+                    return interaction.editReply({ embeds: [embed.setDescription("**Can't create my invite link qwq**").setColor(colors.error)] });
+                }
             }
 
             let segments = [];
@@ -111,7 +123,8 @@ module.exports = {
     // Export the bump function
     bump: async function bump(id, title, interaction, user, emotes, colors) {
         var G = await interaction.client.database.server_cache.getGuild(id);
-        let invite = await interaction.channel.createInvite({});
+        let inviteCode = G.invite;
+        let inviteURL = `https://discord.gg/${inviteCode}`;
         let embed = new EmbedBuilder();
 
         embed.setTitle(interaction.guild.name) // Set the title to the server's name
@@ -128,7 +141,7 @@ module.exports = {
                 new ButtonBuilder()
                     .setLabel('Join Server')
                     .setStyle(ButtonStyle.Link)
-                    .setURL(`https://discord.gg/${invite.code}`),
+                    .setURL(inviteURL),
                 new ButtonBuilder()
                     .setLabel('Support Server')
                     .setStyle(ButtonStyle.Link)
@@ -178,7 +191,6 @@ module.exports = {
                             );
 
                         await reportChannel.send({ embeds: [reportEmbed], components: [reportRow] });
-                        await i.followUp({ content: 'Ad reported successfully.', ephemeral: true });
                     }
                 });
 
@@ -189,7 +201,7 @@ module.exports = {
                                 new ButtonBuilder()
                                     .setLabel('Join Server')
                                     .setStyle(ButtonStyle.Link)
-                                    .setURL(`https://discord.gg/${invite.code}`)
+                                    .setURL(inviteURL)
                                     .setDisabled(true),
                                 new ButtonBuilder()
                                     .setLabel('Support Server')
