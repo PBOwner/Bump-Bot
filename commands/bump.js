@@ -75,15 +75,27 @@ module.exports = {
             channel.send({ embeds: [emb.setDescription(interaction.user.tag + ' bumped ' + interaction.guild.name)] });
 
             // Schedule a reminder to ping the user after 2 hours
-            setTimeout(() => {
+            setTimeout(async () => {
                 const reminderEmbed = rawEmb()
                     .setColor(colors.info)
-                    .setDescription("It's time to bump again!")
-                    .setTitle("Bump Reminder");
+                    .setTitle("Bump Reminder")
+                    .addFields(
+                        { name: "<:dot:1262419415400714331> Bump Reminder!", value: "Time to bump! Use `/bump` or click the button below!" },
+                        { name: "<:dot:1262419415400714331> Need help?", value: "Join the support server! Use `/invite` and click Support Server!" }
+                    );
 
-                interaction.user.send({ embeds: [reminderEmbed] }).catch(() => {
-                    console.log(`Failed to send bump reminder to ${interaction.user.tag}`);
-                });
+                try {
+                    const bumpChannel = interaction.client.channels.cache.get(guild.channel);
+                    await bumpChannel.send({ embeds: [reminderEmbed] });
+                    await bumpChannel.send({ components: [new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('bump')
+                            .setLabel('Bump Again')
+                            .setStyle(ButtonStyle.Success)
+                    )] });
+                } catch (error) {
+                    console.log(`Failed to send bump reminder to channel ${guild.channel}`);
+                }
             }, 7.2e+6); // 2 hours in milliseconds
         }
     }
@@ -116,7 +128,11 @@ async function bump(id, title, interaction, user, emotes, colors) {
             new ButtonBuilder()
                 .setCustomId('report')
                 .setLabel('Report')
-                .setStyle(ButtonStyle.Danger)
+                .setStyle(ButtonStyle.Danger),
+            new ButtonBuilder()
+                .setCustomId('bump')
+                .setLabel('Bump Again')
+                .setStyle(ButtonStyle.Success) // Green button to bump again
         );
 
     let channels = await interaction.client.database.server_cache.getChannel();
