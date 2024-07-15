@@ -1,18 +1,3 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('example')
-        .setDescription('An example command'),
-    async execute(interaction) {
-        await interaction.reply('This is an example command!');
-    },
-};
-```
-
-Make sure all your command files follow this structure. Additionally, you can add some error handling to log which file is causing the issue. Here's how you can modify your code to include this:
-
-```javascript
 const fs = require("fs");
 const { join } = require("path");
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder } = require("discord.js");
