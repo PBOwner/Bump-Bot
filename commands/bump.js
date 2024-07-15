@@ -90,7 +90,7 @@ module.exports = {
                     await bumpChannel.send({ components: [new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId('bump')
-                            .setLabel('Bump Again')
+                            .setLabel('Bump')
                             .setStyle(ButtonStyle.Success)
                     )] });
                 } catch (error) {
@@ -106,7 +106,7 @@ module.exports = {
         let invite = await interaction.channel.createInvite({});
         let emb = rawEmb();
 
-        emb.setTitle(title)
+        emb.setTitle(interaction.guild.name) // Set the title to the server's name
             .setDescription(` \n **Description:**\n ${G.description}
             \n :globe_with_meridians: ${interaction.guild.preferredLocale}
             \n ${emotes.user} ${interaction.guild.memberCount}
@@ -128,11 +128,7 @@ module.exports = {
                 new ButtonBuilder()
                     .setCustomId('report')
                     .setLabel('Report')
-                    .setStyle(ButtonStyle.Danger),
-                new ButtonBuilder()
-                    .setCustomId('bump')
-                    .setLabel('Bump Again')
-                    .setStyle(ButtonStyle.Success) // Green button to bump again
+                    .setStyle(ButtonStyle.Danger)
             );
 
         let channels = await interaction.client.database.server_cache.getChannel();
