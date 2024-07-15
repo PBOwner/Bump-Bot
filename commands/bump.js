@@ -1,4 +1,4 @@
-const { Message, Guild } = require('discord.js');
+const { Message, Guild, MessageEmbed } = require('discord.js');
 const ms = require('parse-ms');
 const { rawEmb } = require('../index');
 
@@ -69,7 +69,7 @@ module.exports = {
         } else {
             guild.time = now;
             await guild.save();
-            const count = await bump(msg.guild.id, msg.guild.name, msg, msg.author.username, msg.client.emotes, msg.client.colors);
+            const count = await bump(msg.guild.id, msg.guild.name, msg, msg.author, msg.client.emotes, msg.client.colors); // Pass the user object
             emb.setDescription(`**Bumped successfully to ${count} Server**`)
                 .setColor(colors.success);
             msg.channel.send({ embeds: [emb] });
@@ -92,7 +92,7 @@ async function bump(id, title, msg, user, emotes, colors) {
         \n ${emotes.user} ${msg.guild.memberCount}
         `)
         .setColor(G.color != 0 ? G.color : colors.info)
-        .setAuthor({ name: user + " bumped: ", iconURL: msg.guild.iconURL() || user.displayAvatarURL() })
+        .setAuthor({ name: user.username + " bumped: ", iconURL: msg.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
         .setTimestamp();
 
     let ch = 0;
