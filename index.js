@@ -195,36 +195,46 @@ client.on('interactionCreate', async interaction => {
         }
     } else if (interaction.isButton()) {
         if (interaction.customId === 'report') {
-            const embed = interaction.message.embeds[0];
-            if (!embed) {
-                return interaction.reply({ content: 'No embed found in the message to report.', ephemeral: true });
+            try {
+                await interaction.deferUpdate();
+
+                const embed = interaction.message.embeds[0];
+                if (!embed) {
+                    return interaction.followUp({ content: 'No embed found in the message to report.', ephemeral: true });
+                }
+                const reportEmbed = new EmbedBuilder()
+                    .setTitle('Reported Server')
+                    .setColor(config.colors.error)
+                    .addFields(
+                        { name: 'Reported by', value: interaction.user.tag },
+                        { name: 'Description', value: embed.description || 'No description provided.' }
+                    );
+
+                const row = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('approve')
+                            .setLabel('Approve')
+                            .setStyle(ButtonStyle.Success),
+                        new ButtonBuilder()
+                            .setCustomId('deny')
+                            .setLabel('Deny')
+                            .setStyle(ButtonStyle.Danger)
+                    );
+
+                // Fetch the report channel from the config and send the report
+                const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
+                if (reportChannel) {
+                    await reportChannel.send({ embeds: [reportEmbed], components: [row] });
+                } else {
+                    console.error('Report channel not found.');
+                }
+
+                await interaction.followUp({ content: 'Report has been sent to the moderators.', ephemeral: true });
+            } catch (error) {
+                console.error('Error handling report button interaction:', error);
+                await interaction.followUp({ content: 'There was an error while processing your report.', ephemeral: true });
             }
-            const reportEmbed = new EmbedBuilder(embed)
-                .setTitle('Reported Server')
-                .setColor(config.colors.error)
-                .addFields({ name: 'Reported by', value: interaction.user.tag });
-
-            const row = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('approve')
-                        .setLabel('Approve')
-                        .setStyle(ButtonStyle.Success),
-                    new ButtonBuilder()
-                        .setCustomId('deny')
-                        .setLabel('Deny')
-                        .setStyle(ButtonStyle.Danger)
-                );
-
-            // Fetch the report channel from the config and send the report
-            const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
-            if (reportChannel) {
-                await reportChannel.send({ embeds: [reportEmbed], components: [row] });
-            } else {
-                console.error('Report channel not found.');
-            }
-
-            await interaction.update({ content: 'Report has been sent to the moderators.', components: [] }).catch(console.error);
         } else if (interaction.customId === 'approve' || interaction.customId === 'deny') {
             if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
                 return interaction.reply({ content: 'You do not have permission to approve or deny reports.', ephemeral: true });
