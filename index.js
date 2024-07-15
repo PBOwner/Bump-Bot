@@ -1,9 +1,11 @@
-const fs = require("fs"); // Import the fs module
+const fs = require("fs");
 const { join } = require("path");
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const config = require('./config'); // Import config
+const config = require('./config');
+const fetch = require('node-fetch'); // Import node-fetch
+const { exec } = require('child_process'); // Import child_process
 
 const client = new Client({
     intents: [
@@ -35,10 +37,6 @@ if (!config.Bottoken) throw new Error('Please enter a Bot Token!');
 const { Server, syncDatabase } = require('./database/dbInit');
 var server_cache = new Collection();
 Reflect.defineProperty(server_cache, "getGuild", {
-    /**
-     * @param {number} id Guild ID
-     * @returns {Model} new User
-     */
     value: async function (id) {
         var guild = server_cache.get(id);
         if (!guild) guild = await Server.findOne({ where: { key: id } });
@@ -50,10 +48,6 @@ Reflect.defineProperty(server_cache, "getGuild", {
     }
 });
 Reflect.defineProperty(server_cache, "getChannel", {
-    /**
-     *  @param {number} id Channel ID
-     * @returns {Model} new User
-     */
     value: async function () {
         let arr = [];
         var channels = await Server.findAll();
@@ -61,7 +55,7 @@ Reflect.defineProperty(server_cache, "getChannel", {
         return arr;
     }
 });
-// Sync
+
 const initDatabase = async () => {
     await syncDatabase();
     try {
@@ -72,10 +66,10 @@ const initDatabase = async () => {
     } catch (e) {
         console.log(" >  Error While Caching Database");
         console.log(e);
-        // process.exit(1);
     }
 };
 client.database = { server_cache };
+
 //==================================================================================================================================================
 // Initialize the Commands
 //==================================================================================================================================================
@@ -97,8 +91,9 @@ for (const file of commandFiles) {
         console.error(`Error loading command at './commands/${file}':`, error);
     }
 }
-// Register slash commands
+
 const rest = new REST({ version: '9' }).setToken(config.Bottoken);
+
 //==================================================================================================================================================
 // Starting the Bot
 //==================================================================================================================================================
@@ -126,9 +121,45 @@ const start = async () => {
         console.log(e);
     }
 };
-start();
 
-client.once("ready", async () => { // Use `once` to ensure it runs only once
+// Function to check for updates
+const checkForUpdates = async () => {
+    try {
+        const response = await fetch('https://api.github.com/repos/PBOwner/Bump-Bot/commits/main'); // Replace with your repo
+        const data = await response.json();
+        const latestCommit = data.sha;
+
+        const currentCommit = fs.readFileSync('current_commit.txt', 'utf8');
+
+        if (latestCommit !== currentCommit) {
+            console.log('New update detected. Restarting bot...');
+            fs.writeFileSync('current_commit.txt', latestCommit);
+
+            // Use pm2 to restart the bot
+            exec('pm2 restart your-bot-name', (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error restarting bot: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    console.error(`stderr: ${stderr}`);
+                    return;
+                }
+                console.log(`stdout: ${stdout}`);
+            });
+        } else {
+            console.log('No updates found.');
+        }
+    } catch (error) {
+        console.error('Error checking for updates:', error);
+    }
+};
+
+// Start the bot and check for updates every 10 minutes
+start();
+setInterval(checkForUpdates, 10 * 60 * 1000);
+
+client.once("ready", async () => {
     if (!config.supportGuildId) throw new Error('Please enter your Support-Guild-ID');
     if (!config.supportGuildLogChannelId) throw new Error('Please enter your Support-Guild-Log-Channel-ID');
     console.log(" >  Logged in as: " + client.user.tag);
@@ -255,4 +286,4 @@ client.on('interactionCreate', async interaction => {
             await interaction.reply({ content: 'Server unblocked successfully.', ephemeral: true });
         }
     }
-});
+}
