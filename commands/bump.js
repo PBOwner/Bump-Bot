@@ -1,6 +1,7 @@
 const { Message, Guild, MessageEmbed } = require('discord.js');
 const ms = require('parse-ms');
-const { rawEmb } = require('../index');
+const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
+const { ownerId } = require('../index'); // Import ownerId from index.js
 
 module.exports = {
     name: 'bump',
@@ -14,7 +15,7 @@ module.exports = {
      * @param {String[]} args
      */
     async execute(msg, args) {
-        const { colors, emotes, ownerId } = msg.client;
+        const { colors, emotes } = msg.client;
 
         let emb = rawEmb();
         var guild = await msg.client.database.server_cache.getGuild(msg.guild.id);
