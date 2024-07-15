@@ -216,7 +216,15 @@ client.on('interactionCreate', async interaction => {
                         .setStyle(ButtonStyle.Danger)
                 );
 
-            await interaction.update({ embeds: [reportEmbed], components: [row] }).catch(console.error);
+            // Fetch the report channel from the config and send the report
+            const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
+            if (reportChannel) {
+                await reportChannel.send({ embeds: [reportEmbed], components: [row] });
+            } else {
+                console.error('Report channel not found.');
+            }
+
+            await interaction.update({ content: 'Report has been sent to the moderators.', components: [] }).catch(console.error);
         } else if (interaction.customId === 'approve' || interaction.customId === 'deny') {
             if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
                 return interaction.reply({ content: 'You do not have permission to approve or deny reports.', ephemeral: true });
@@ -267,4 +275,8 @@ client.on('interactionCreate', async interaction => {
 // Handle uncaught exceptions and rejections
 process.on('unhandledRejection', error => {
     console.error('Unhandled promise rejection:', error);
+});
+
+process.on('uncaughtException', error => {
+    console.error('Uncaught exception:', error);
 });
