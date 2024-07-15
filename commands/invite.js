@@ -12,9 +12,9 @@ module.exports = {
         const { colors } = interaction.client;
         const supportGuildId = config.supportGuildId;
 
-        let link = `https://discord.com/api/oauth2/authorize?client_id=${interaction.client.user.id}&permissions=8&scope=bot`;
+        let botInviteLink = `https://discord.com/api/oauth2/authorize?client_id=${interaction.client.user.id}&permissions=8&scope=bot`;
 
-        let invite;
+        let supportInviteLink;
         try {
             // Fetch the support server
             const supportGuild = await interaction.client.guilds.fetch(supportGuildId);
@@ -25,10 +25,11 @@ module.exports = {
             if (!inviteChannel) {
                 throw new Error('No suitable channel found to create an invite link.');
             }
-            invite = await inviteChannel.createInvite({ maxAge: 0, maxUses: 0 });
+            const invite = await inviteChannel.createInvite({ maxAge: 0, maxUses: 0 });
+            supportInviteLink = `https://discord.gg/${invite.code}`;
         } catch (error) {
             console.error('Error creating support server invite:', error);
-            invite = "https://discord.gg/KJjZnxZ"; // Fallback invite link
+            supportInviteLink = "https://discord.gg/KJjZnxZ"; // Fallback invite link
         }
 
         let emb = rawEmb()
@@ -39,11 +40,11 @@ module.exports = {
                 new ButtonBuilder()
                     .setLabel('Bot Invite')
                     .setStyle(ButtonStyle.Link)
-                    .setURL(link),
+                    .setURL(botInviteLink),
                 new ButtonBuilder()
                     .setLabel('Support Server')
                     .setStyle(ButtonStyle.Link)
-                    .setURL(invite.url)
+                    .setURL(supportInviteLink)
             );
 
         interaction.reply({ embeds: [emb], components: [row] });
