@@ -232,6 +232,9 @@ client.on('interactionCreate', async interaction => {
     } else if (interaction.isButton()) {
         if (interaction.customId === 'report') {
             const embed = interaction.message.embeds[0];
+            if (!embed) {
+                return interaction.reply({ content: 'No embed found in the message to report.', ephemeral: true });
+            }
             const reportEmbed = new EmbedBuilder(embed)
                 .setTitle('Reported Server')
                 .setColor(config.colors.error)
@@ -257,6 +260,9 @@ client.on('interactionCreate', async interaction => {
             }
 
             const embed = interaction.message.embeds[0];
+            if (!embed || !embed.author || !embed.author.name) {
+                return interaction.reply({ content: 'Invalid embed data.', ephemeral: true });
+            }
             const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
             const guild = await interaction.client.database.server_cache.getGuild(guildId);
 
@@ -282,6 +288,9 @@ client.on('interactionCreate', async interaction => {
             }
 
             const embed = interaction.message.embeds[0];
+            if (!embed || !embed.author || !embed.author.name) {
+                return interaction.reply({ content: 'Invalid embed data.', ephemeral: true });
+            }
             const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
             const guild = await interaction.client.database.server_cache.getGuild(guildId);
             guild.blocked = false;
