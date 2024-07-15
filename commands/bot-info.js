@@ -1,5 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const config = require('../config'); // Import config
 
 module.exports = {
@@ -9,6 +8,8 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            await interaction.deferReply(); // Defer the reply to give more time for processing
+
             const owner = await interaction.client.users.fetch(config.ownerID);
             const guilds = interaction.client.guilds.cache;
 
@@ -51,10 +52,10 @@ module.exports = {
                     { name: 'Users', value: `${userCount}`, inline: true }
                 );
 
-            return interaction.reply({ embeds: [embed] });
+            return interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error('An error occurred while executing the command:', error);
-            return interaction.reply({ content: 'An error occurred while fetching bot information.', ephemeral: true });
+            return interaction.editReply({ content: 'An error occurred while fetching bot information.', ephemeral: true });
         }
     }
 };
