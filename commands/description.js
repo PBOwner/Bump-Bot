@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { rawEmb } = require('../index');
+const config = require('../config'); // Import config
 
 module.exports = {
     data: new SlashCommandBuilder()
