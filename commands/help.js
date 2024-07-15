@@ -1,28 +1,27 @@
-const { Message } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { rawEmb } = require('../index');
 
 module.exports = {
-    name: 'help',
-    syntax: 'help',
-    args: false,
-    description: 'Shows you all my Commands',
-    commands: ['help'],
+    data: new SlashCommandBuilder()
+        .setName('help')
+        .setDescription('Shows you all my Commands')
+        .addStringOption(option =>
+            option.setName('command')
+                .setDescription('The specific command to get help for')
+                .setRequired(false)),
 
-    /**
-     * @param {Message} msg
-     * @param {String[]} args
-     */
-    async execute(msg, args) {
-        const { colors, emotes } = msg.client;
+    async execute(interaction) {
+        const { colors } = interaction.client;
         const githubLink = 'https://github.com/DragonCat4012/Bump-Bot';
         let emb = rawEmb()
-            .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+            .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
 
-        if (args[0]) {
-            var command = msg.client.commands.find(cmd => cmd.commands.includes(args[0].toLowerCase()));
+        let commandName = interaction.options.getString('command');
+        if (commandName) {
+            var command = interaction.client.commands.find(cmd => cmd.commands.includes(commandName.toLowerCase()));
             if (!command) {
                 emb.setTitle("Command not found qwq");
-                return msg.channel.send({ embeds: [emb] });
+                return interaction.reply({ embeds: [emb], ephemeral: true });
             }
             emb.setTitle(command.name)
                 .addFields(
@@ -31,16 +30,16 @@ module.exports = {
                 )
                 .setFooter({ text: "Trigger: " + command.commands.join(', ') });
 
-            msg.channel.send({ embeds: [emb] });
+            interaction.reply({ embeds: [emb], ephemeral: true });
         } else {
             let A = [];
-            for (let cmd of msg.client.commands) {
+            for (let cmd of interaction.client.commands) {
                 let command = cmd[1];
                 A.push(` **${command.name}** \`%${command.syntax}\`\n ----------------------------------\n`);
             }
             emb.setDescription(A.join(" ") + `\n [Github](${githubLink})`)
                 .setTitle('My Commands');
-            msg.channel.send({ embeds: [emb.setFooter({ text: `Type %help <command> for more || ${A.length} Commands` })] });
+            interaction.reply({ embeds: [emb.setFooter({ text: `Type %help <command> for more || ${A.length} Commands` })], ephemeral: true });
         }
     }
 };
