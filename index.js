@@ -110,9 +110,11 @@ const commandFiles = fs
     .readdirSync("./commands")
     .filter(file => file.endsWith(".js"));
 
+const commands = [];
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     client.commands.set(command.name, command);
+    commands.push(command.data.toJSON());
 }
 
 // Register slash commands
@@ -159,7 +161,7 @@ client.on("ready", async () => {
 
         await rest.put(
             Routes.applicationCommands(client.user.id),
-            { body: commands },
+            { body: commands },  // Ensure 'commands' is defined here
         );
 
         console.log('Successfully reloaded application (/) commands.');
