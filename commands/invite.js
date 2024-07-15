@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageButton } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require('discord.js');
 const { rawEmb } = require('../index');
 const config = require('../config'); // Import config
 
@@ -19,7 +19,9 @@ module.exports = {
             // Fetch the support server
             const supportGuild = await interaction.client.guilds.fetch(supportGuildId);
             // Create an invite for the support server
-            const inviteChannel = supportGuild.channels.cache.find(channel => channel.isText() && channel.permissionsFor(supportGuild.me).has('CREATE_INSTANT_INVITE'));
+            const inviteChannel = supportGuild.channels.cache.find(channel =>
+                channel.isTextBased() && channel.permissionsFor(supportGuild.members.me).has(PermissionsBitField.Flags.CreateInstantInvite)
+            );
             if (!inviteChannel) {
                 throw new Error('No suitable channel found to create an invite link.');
             }
@@ -32,15 +34,15 @@ module.exports = {
         let emb = rawEmb()
             .setTitle("Invite Links");
 
-        const row = new MessageActionRow()
+        const row = new ActionRowBuilder()
             .addComponents(
-                new MessageButton()
+                new ButtonBuilder()
                     .setLabel('Bot Invite')
-                    .setStyle('LINK')
+                    .setStyle(ButtonStyle.Link)
                     .setURL(link),
-                new MessageButton()
+                new ButtonBuilder()
                     .setLabel('Support Server')
-                    .setStyle('LINK')
+                    .setStyle(ButtonStyle.Link)
                     .setURL(invite.url)
             );
 
