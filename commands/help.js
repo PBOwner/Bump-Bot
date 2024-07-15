@@ -12,7 +12,7 @@ module.exports = {
 
     async execute(interaction) {
         const { colors } = interaction.client;
-        const githubLink = 'https://github.com/DragonCat4012/Bump-Bot';
+        const githubLink = 'https://github.com/PBOwner/Bump-Bot';
         let emb = rawEmb()
             .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
 
