@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
+const { SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const config = require('../config'); // Import config
 const { bump } = require('./bump'); // Import the bump function from bump.js
 
@@ -39,14 +39,14 @@ module.exports = {
                     const count = await bump(interaction.guild.id, interaction.guild.name, interaction, interaction.user, interaction.client.emotes, interaction.client.colors); // Pass the user object
                     console.log(interaction.guild.name + "   >>>  auto-bumped!");
                     var channel = await interaction.client.guilds.cache.get(interaction.client.supportGuildId).channels.cache.get(interaction.client.supportGuildLogChannelId);
-                    let emb = rawEmb();
-                    emb.setDescription(`Auto-bumped ${interaction.guild.name}`)
+                    let embed = new EmbedBuilder();
+                    embed.setDescription(`Auto-bumped ${interaction.guild.name}`)
                         .setColor(interaction.client.colors.success);
-                    channel.send({ embeds: [emb] });
+                    channel.send({ embeds: [embed] });
 
                     // Schedule a reminder to ping the user after 2 hours
                     setTimeout(async () => {
-                        const reminderEmbed = rawEmb()
+                        const reminderEmbed = new EmbedBuilder()
                             .setColor(interaction.client.colors.info)
                             .setTitle("Bump Reminder")
                             .addFields(
