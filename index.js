@@ -1,4 +1,3 @@
-
 const fs = require("fs");
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { REST } = require('@discordjs/rest');
@@ -183,6 +182,7 @@ client.on('guildMemberRemove', async member => {
     ch.send({ embeds: [emb] }).catch(() => { });
 });
 
+// Event: interactionCreate
 client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
@@ -200,7 +200,9 @@ client.on('interactionCreate', async interaction => {
     } else if (interaction.isButton()) {
         try {
             if (interaction.customId === 'report') {
-                await interaction.deferUpdate();
+                if (!interaction.deferred && !interaction.replied) {
+                    await interaction.deferUpdate();
+                }
 
                 const embed = interaction.message.embeds[0];
                 if (!embed) {
