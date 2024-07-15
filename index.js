@@ -4,7 +4,6 @@ const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRow
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const config = require('./config');
-const fetch = require('node-fetch'); // Import node-fetch
 const { exec } = require('child_process'); // Import child_process
 
 const client = new Client({
@@ -125,7 +124,8 @@ const start = async () => {
 // Function to check for updates
 const checkForUpdates = async () => {
     try {
-        const response = await fetch('https://api.github.com/repos/PBOwner/Bump-Bot/commits/main'); // Replace with your repo
+        const fetch = (await import('node-fetch')).default;
+        const response = await fetch('https://api.github.com/repos/your-username/your-repo/commits/main'); // Replace with your repo
         const data = await response.json();
         const latestCommit = data.sha;
 
