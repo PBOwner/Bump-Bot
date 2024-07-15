@@ -158,7 +158,7 @@ client.on("ready", async () => {
         console.log('Started refreshing application (/) commands.');
 
         await rest.put(
-            Routes.applicationGuildCommands(client.user.id, supportGuildId),
+            Routes.applicationCommands(client.user.id),
             { body: commands },
         );
 
@@ -184,7 +184,11 @@ client.on('guildMemberAdd', async member => {
 client.on('guildCreate', async guild => {
     let supGuild = await client.guilds.resolve(supportGuildId)
     let channel = await supGuild.channels.resolve(supportGuildLogChannelId)
-    let emb = rawEmb().setTitle('Server joined').setColor(colors.success).setDescription(guild.name)
+    let owner = await guild.fetchOwner();
+    let emb = rawEmb()
+        .setTitle('Server joined')
+        .setColor(colors.success)
+        .setDescription(`**Server Name:** ${guild.name}\n**Server ID:** ${guild.id}\n**Owner Name:** ${owner.user.tag}\n**Owner ID:** ${owner.user.id}`);
     channel.send({ embeds: [emb] }).catch(() => { })
 })
 
