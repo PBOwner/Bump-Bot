@@ -125,18 +125,18 @@ const start = async () => {
 const checkForUpdates = async () => {
     try {
         const fetch = (await import('node-fetch')).default;
-        const response = await fetch('https://api.github.com/repos/your-username/your-repo/commits/main'); // Replace with your repo
+        const response = await fetch('https://api.github.com/repos/PBOwner/Bump-Bot/commits/main');
         const data = await response.json();
-        const latestCommit = data.sha;
+        const latestCommit = data[0].sha; // Get the latest commit SHA
 
-        const currentCommit = fs.readFileSync('current_commit.txt', 'utf8');
+        const currentCommit = fs.existsSync('current_commit.txt') ? fs.readFileSync('current_commit.txt', 'utf8') : '';
 
         if (latestCommit !== currentCommit) {
             console.log('New update detected. Restarting bot...');
             fs.writeFileSync('current_commit.txt', latestCommit);
 
             // Use pm2 to restart the bot
-            exec('pm2 restart your-bot-name', (error, stdout, stderr) => {
+            exec('pm2 restart bump-bot', (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error restarting bot: ${error.message}`);
                     return;
@@ -178,6 +178,7 @@ client.once("ready", async () => {
     }
 });
 
+// Event: guildMemberAdd
 client.on('guildMemberAdd', async member => {
     let { guild } = member;
     let settings = await client.database.server_cache.getGuild(guild.id);
@@ -191,6 +192,7 @@ client.on('guildMemberAdd', async member => {
     ch.send({ embeds: [emb] }).catch(() => { });
 });
 
+// Event: guildCreate
 client.on('guildCreate', async guild => {
     let supGuild = await client.guilds.resolve(config.supportGuildId);
     let channel = await supGuild.channels.resolve(config.supportGuildLogChannelId);
@@ -202,6 +204,7 @@ client.on('guildCreate', async guild => {
     channel.send({ embeds: [emb] }).catch(() => { });
 });
 
+// Event: guildMemberRemove
 client.on('guildMemberRemove', async member => {
     let { guild } = member;
     let settings = await client.database.server_cache.getGuild(guild.id);
@@ -215,6 +218,7 @@ client.on('guildMemberRemove', async member => {
     ch.send({ embeds: [emb] }).catch(() => { });
 });
 
+// Event: interactionCreate
 client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
@@ -286,4 +290,13 @@ client.on('interactionCreate', async interaction => {
             await interaction.reply({ content: 'Server unblocked successfully.', ephemeral: true });
         }
     }
+});
+
+// Handle uncaught exceptions and rejections
+process.on('unhandledRejection', error => {
+    console.error('Unhandled promise rejection:', error);
+});
+
+process.on('uncaughtException', error => {
+    console.error('Uncaught exception:', error);
 });
