@@ -15,12 +15,6 @@ const client = new Client({
     partials: [Partials.Channel]
 });
 
-const rawEmb = () => {
-    return new EmbedBuilder()
-        .setColor(config.colors.info);
-};
-module.exports = { rawEmb };
-
 client.ownerID = config.ownerID;
 client.colors = config.colors;
 client.emotes = config.emotes;
@@ -187,7 +181,10 @@ client.on('guildMemberAdd', async member => {
         settings.wlc = undefined;
         return settings.save();
     }
-    let emb = rawEmb().setTitle('Member Joined').setDescription(`${member} joined **${guild.name}**! Welcome you'r member No. **${guild.memberCount}**`);
+    let emb = new EmbedBuilder()
+        .setColor(config.colors.info)
+        .setTitle('Member Joined')
+        .setDescription(`${member} joined **${guild.name}**! Welcome you'r member No. **${guild.memberCount}**`);
     ch.send({ embeds: [emb] }).catch(() => { });
 });
 
@@ -196,9 +193,9 @@ client.on('guildCreate', async guild => {
     let supGuild = await client.guilds.resolve(config.supportGuildId);
     let channel = await supGuild.channels.resolve(config.supportGuildLogChannelId);
     let owner = await guild.fetchOwner();
-    let emb = rawEmb()
-        .setTitle('Server joined')
+    let emb = new EmbedBuilder()
         .setColor(config.colors.success)
+        .setTitle('Server joined')
         .setDescription(`**Server Name:** ${guild.name}\n**Server ID:** ${guild.id}\n**Owner Name:** ${owner.user.tag}\n**Owner ID:** ${owner.user.id}`);
     channel.send({ embeds: [emb] }).catch(() => { });
 });
@@ -213,7 +210,10 @@ client.on('guildMemberRemove', async member => {
         settings.gb = undefined;
         return settings.save();
     }
-    let emb = rawEmb().setTitle('Member Leaved').setDescription(`${member} leaved from **${guild.name}** Bye Bye`);
+    let emb = new EmbedBuilder()
+        .setColor(config.colors.info)
+        .setTitle('Member Leaved')
+        .setDescription(`${member} leaved from **${guild.name}** Bye Bye`);
     ch.send({ embeds: [emb] }).catch(() => { });
 });
 
@@ -251,7 +251,7 @@ client.on('interactionCreate', async interaction => {
                         .setStyle(ButtonStyle.Danger)
                 );
 
-            await interaction.update({ embeds: [reportEmbed], components: [row] });
+            await interaction.update({ embeds: [reportEmbed], components: [row] }).catch(console.error);
         } else if (interaction.customId === 'approve' || interaction.customId === 'deny') {
             if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
                 return interaction.reply({ content: 'You do not have permission to approve or deny reports.', ephemeral: true });
@@ -276,9 +276,9 @@ client.on('interactionCreate', async interaction => {
                             .setStyle(ButtonStyle.Secondary)
                     );
 
-                await interaction.update({ content: 'Server approved and blocked. You can unblock it if needed.', components: [row] });
+                await interaction.update({ content: 'Server approved and blocked. You can unblock it if needed.', components: [row] }).catch(console.error);
             } else if (interaction.customId === 'deny') {
-                await interaction.update({ content: 'Report dismissed.', components: [] });
+                await interaction.update({ content: 'Report dismissed.', components: [] }).catch(console.error);
             }
         } else if (interaction.customId === 'unblock') {
             if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
@@ -294,7 +294,7 @@ client.on('interactionCreate', async interaction => {
             guild.blocked = false;
             await guild.save();
 
-            await interaction.reply({ content: 'Server unblocked successfully.', ephemeral: true });
+            await interaction.reply({ content: 'Server unblocked successfully.', ephemeral: true }).catch(console.error);
         }
     }
 });
