@@ -1,6 +1,5 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { rawEmb } = require('../index');
+const { SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const config = require('../config'); // Import config
 
 module.exports = {
@@ -14,7 +13,7 @@ module.exports = {
         let botInviteLink = `https://discord.com/api/oauth2/authorize?client_id=${interaction.client.user.id}&permissions=8&scope=bot`;
         let supportInviteLink = config.supportInviteLink; // Use the fixed support server invite link from config
 
-        let emb = rawEmb()
+        let embed = new EmbedBuilder()
             .setTitle("Invite Links");
 
         const row = new ActionRowBuilder()
@@ -29,6 +28,6 @@ module.exports = {
                     .setURL(supportInviteLink)
             );
 
-        interaction.reply({ embeds: [emb], components: [row] });
+        interaction.reply({ embeds: [embed], components: [row] });
     }
 };
