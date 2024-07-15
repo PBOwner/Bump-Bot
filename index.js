@@ -1,9 +1,7 @@
-const fs = require("fs");
-const { join } = require("path");
-const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder } = require("discord.js");
+const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, MessageActionRow, MessageButton } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const config = require('./config'); // Import the configuration module
+const config = require('./config'); // Import config
 
 const client = new Client({
     intents: [
@@ -181,13 +179,45 @@ client.on('guildMemberRemove', async member => {
     ch.send({ embeds: [emb] }).catch(() => { });
 });
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
-    const command = client.commands.get(interaction.commandName);
-    if (!command) return;
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    if (interaction.isCommand()) {
+        const command = client.commands.get(interaction.commandName);
+        if (!command) return;
+        try {
+            await command.execute(interaction);
+        } catch (error) {
+            console.error(error);
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    } else if (interaction.isButton()) {
+        if (interaction.customId === 'report') {
+            const reportChannelId = config.reportChannelId; // Add this to your config
+            const reportChannel = await interaction.client.channels.fetch(reportChannelId);
+            const embed = interaction.message.embeds[0];
+
+            const row = new MessageActionRow()
+                .addComponents(
+                    new MessageButton()
+                        .setCustomId('approve')
+                        .setLabel('Approve')
+                        .setStyle('SUCCESS'),
+                    new MessageButton()
+                        .setCustomId('deny')
+                        .setLabel('Deny')
+                        .setStyle('DANGER')
+                );
+
+            reportChannel.send({ embeds: [embed], components: [row] });
+            await interaction.reply({ content: 'Ad reported successfully.', ephemeral: true });
+        } else if (interaction.customId === 'approve') {
+            const embed = interaction.message.embeds[0];
+            const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
+            const guild = await interaction.client.database.server_cache.getGuild(guildId);
+            guild.blocked = true;
+            await guild.save();
+
+            await interaction.reply({ content: 'Server blocked from using the bot.', ephemeral: true });
+        } else if (interaction.customId === 'deny') {
+            await interaction.reply({ content: 'Report dismissed.', ephemeral: true });
+        }
     }
 });
