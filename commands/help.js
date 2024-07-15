@@ -1,5 +1,5 @@
 const { Message } = require('discord.js');
-const { rawEmb } = require('../index')
+const { rawEmb } = require('../index');
 
 module.exports = {
     name: 'help',
@@ -9,38 +9,38 @@ module.exports = {
     commands: ['help'],
 
     /**
-     *@document
-     * @this
-     * @param {Message} msg 
-     * @param {String[]} args 
+     * @param {Message} msg
+     * @param {String[]} args
      */
     async execute(msg, args) {
         const { colors, emotes } = msg.client;
-        const githubLink = 'https://github.com/DragonCat4012/Bump-Bot'
-        let emb = rawEmb(msg)
-            .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        const githubLink = 'https://github.com/DragonCat4012/Bump-Bot';
+        let emb = rawEmb()
+            .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
         if (args[0]) {
             var command = msg.client.commands.find(cmd => cmd.commands.includes(args[0].toLowerCase()));
             if (!command) {
-                emb.setTitle("Command not found qwq")
-                return msg.channel.send(emb);
+                emb.setTitle("Command not found qwq");
+                return msg.channel.send({ embeds: [emb] });
             }
             emb.setTitle(command.name)
-                .addField("**Syntax:**", command.syntax)
-                .addField("**Description:**", command.beschreibung ? command.beschreibung : command.description)
-                .setFooter("Trigger: " + command.commands.join(', '))
+                .addFields(
+                    { name: "**Syntax:**", value: command.syntax },
+                    { name: "**Description:**", value: command.description }
+                )
+                .setFooter({ text: "Trigger: " + command.commands.join(', ') });
 
-            msg.channel.send(emb);
+            msg.channel.send({ embeds: [emb] });
         } else {
-            let A = []
-            for (cmd of msg.client.commands) {
-                let command = cmd[1]
-                A.push(`• **${command.name}** \`%${command.syntax}\`\n ----------------------------------\n`)
+            let A = [];
+            for (let cmd of msg.client.commands) {
+                let command = cmd[1];
+                A.push(` **${command.name}** \`%${command.syntax}\`\n ----------------------------------\n`);
             }
             emb.setDescription(A.join(" ") + `\n [Github](${githubLink})`)
-                .setTitle('My Commands')
-            msg.channel.send(emb.setFooter(`Type %help <command> for more || ${A.length} Commands`));
+                .setTitle('My Commands');
+            msg.channel.send({ embeds: [emb.setFooter({ text: `Type %help <command> for more || ${A.length} Commands` })] });
         }
     }
 };
