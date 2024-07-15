@@ -9,8 +9,20 @@ module.exports = {
 
     async execute(interaction) {
         const owner = await interaction.client.users.fetch(config.ownerID);
-        const serverCount = interaction.client.guilds.cache.size;
-        const userCount = interaction.client.users.cache.size;
+        const guilds = interaction.client.guilds.cache;
+
+        // Set to store unique user IDs
+        const uniqueUserIds = new Set();
+
+        // Iterate through each guild and collect unique user IDs
+        guilds.forEach(guild => {
+            guild.members.cache.forEach(member => {
+                uniqueUserIds.add(member.user.id);
+            });
+        });
+
+        const serverCount = guilds.size;
+        const userCount = uniqueUserIds.size;
 
         const emb = rawEmb()
             .setColor(config.colors.info)
@@ -23,4 +35,4 @@ module.exports = {
 
         return interaction.reply({ embeds: [emb] });
     }
-};
+}
