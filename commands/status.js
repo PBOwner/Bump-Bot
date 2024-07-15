@@ -61,11 +61,17 @@ module.exports = {
         }
 
         try {
+            // Log the current presence before setting the new one
+            console.log('Current Presence:', interaction.client.user.presence);
+
             // Set the new presence
             interaction.client.user.setPresence({
                 activities: [{ name: text, type: type }],
                 status: status
             });
+
+            // Log the new presence after setting it
+            console.log('New Presence:', interaction.client.user.presence);
 
             // Get the current presence
             const currentPresence = interaction.client.user.presence;
