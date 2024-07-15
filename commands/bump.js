@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const ms = require('parse-ms');
 const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
-const { ownerID } = require('../index'); // Import ownerId from index.js
+const config = require('../config'); // Import config
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -58,7 +58,7 @@ module.exports = {
         const timeString = segments.join('\n');
 
         // Check if the user is the owner
-        if (interaction.user.id !== ownerID && cooldown - (now - bumped_time) > 0) {
+        if (interaction.user.id !== config.ownerID && cooldown - (now - bumped_time) > 0) {
             emb.setColor(colors.error)
                 .setDescription(`**${timeString}**`)
                 .setTitle("You have to wait ;-;");
