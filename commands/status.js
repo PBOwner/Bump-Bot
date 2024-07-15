@@ -65,7 +65,7 @@ module.exports = {
             console.log('Current Presence:', interaction.client.user.presence);
 
             // Set the new presence
-            interaction.client.user.setPresence({
+            await interaction.client.user.setPresence({
                 activities: [{ name: text, type: type }],
                 status: status
             });
@@ -73,11 +73,11 @@ module.exports = {
             // Log the new presence after setting it
             console.log('New Presence:', interaction.client.user.presence);
 
-            // Get the current presence
+            // Get the updated presence
             const currentPresence = interaction.client.user.presence;
             const currentActivity = currentPresence.activities[0];
 
-            // Create a response embed with the current presence
+            // Create a response embed with the updated presence
             emb.setDescription(`**Changed status to:**\nType: ${type}\nText: ${text}\nStatus: ${status}`)
                .setColor(colors.success)
                .addFields(
