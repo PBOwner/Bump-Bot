@@ -1,7 +1,7 @@
 const { Message, Guild, MessageEmbed } = require('discord.js');
 const ms = require('parse-ms');
 const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
-const { ownerId } = require('../index'); // Import ownerId from index.js
+const { ownerID } = require('../index'); // Import ownerId from index.js
 
 module.exports = {
     name: 'bump',
@@ -63,7 +63,7 @@ module.exports = {
         const timeString = segments.join('\n');
 
         // Check if the user is the owner
-        if (msg.author.id !== ownerId && cooldown - (now - bumped_time) > 0) {
+        if (msg.author.id !== ownerID && cooldown - (now - bumped_time) > 0) {
             emb.setColor(colors.error)
                 .setDescription(`**${timeString}**`)
                 .setTitle("You have to wait ;-;");
