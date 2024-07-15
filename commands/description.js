@@ -15,6 +15,9 @@ module.exports = {
         let emb = rawEmb();
         let text = interaction.options.getString('text');
 
+        // Replace escape characters with actual new lines
+        text = text.replace(/\\n/g, '\n');
+
         if (text.length > 4000) {
             emb.setDescription("**Sorry, but you can only use 4000 Characters for your description!**");
             return interaction.reply({ embeds: [emb.setColor(colors.error)], ephemeral: true });
