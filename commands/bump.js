@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageButton } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const ms = require('parse-ms');
 const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
 const config = require('../config'); // Import config
@@ -103,20 +103,20 @@ async function bump(id, title, interaction, user, emotes, colors) {
         .setAuthor({ name: user.username + " bumped: ", iconURL: interaction.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
         .setTimestamp();
 
-    const row = new MessageActionRow()
+    const row = new ActionRowBuilder()
         .addComponents(
-            new MessageButton()
+            new ButtonBuilder()
                 .setLabel('Join Server')
-                .setStyle('LINK')
+                .setStyle(ButtonStyle.Link)
                 .setURL(`https://discord.gg/${invite.code}`),
-            new MessageButton()
+            new ButtonBuilder()
                 .setLabel('Support Server')
-                .setStyle('LINK')
+                .setStyle(ButtonStyle.Link)
                 .setURL(`https://discord.gg/${config.supportGuildId}`),
-            new MessageButton()
+            new ButtonBuilder()
                 .setCustomId('report')
                 .setLabel('Report')
-                .setStyle('DANGER')
+                .setStyle(ButtonStyle.Danger)
         );
 
     let ch = 0;
