@@ -58,7 +58,7 @@ module.exports = {
         const timeString = segments.join('\n');
 
         // Check if the user is the owner
-        if (interaction.user.id !== ownerId && cooldown - (now - bumped_time) > 0) {
+        if (interaction.user.id !== ownerID && cooldown - (now - bumped_time) > 0) {
             emb.setColor(colors.error)
                 .setDescription(`**${timeString}**`)
                 .setTitle("You have to wait ;-;");
