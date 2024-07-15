@@ -18,8 +18,8 @@ module.exports = {
         let emb = rawEmb();
         let text = args.join(" ");
 
-        if (text.length > 1000) {
-            emb.setDescription("**Sorry, but you can only use 1000 Characters for your description qwq**");
+        if (text.length > 4000) {
+            emb.setDescription("**Sorry, but you can only use 4000 Characters for your description!**");
             return msg.channel.send({ embeds: [emb.setColor(colors.error)] });
         }
 
