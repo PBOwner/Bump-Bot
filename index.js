@@ -14,6 +14,8 @@ const client = new Client({
     partials: [Partials.Channel]
 });
 
+const prefix = '-';
+
 const colors = {
     error: 0xF91A3C,
     info: 0x303136,
@@ -108,11 +110,9 @@ const commandFiles = fs
     .readdirSync("./commands")
     .filter(file => file.endsWith(".js"));
 
-const commands = [];
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    client.commands.set(command.data.name, command);
-    commands.push(command.data.toJSON());
+    client.commands.set(command.name, command);
 }
 
 // Register slash commands
@@ -205,17 +205,20 @@ client.on('guildMemberRemove', async member => {
     ch.send({ embeds: [emb] }).catch(() => { })
 })
 
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
+client.on('messageCreate', async message => {
+    if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-    const command = client.commands.get(interaction.commandName);
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+
+    const command = client.commands.get(commandName);
 
     if (!command) return;
 
     try {
-        await command.execute(interaction);
+        await command.execute(message, args);
     } catch (error) {
         console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        message.reply({ content: 'There was an error while executing this command!' });
     }
 });
