@@ -1,3 +1,4 @@
+
 const fs = require("fs");
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { REST } = require('@discordjs/rest');
@@ -182,7 +183,6 @@ client.on('guildMemberRemove', async member => {
     ch.send({ embeds: [emb] }).catch(() => { });
 });
 
-// Event: interactionCreate
 client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
@@ -191,11 +191,15 @@ client.on('interactionCreate', async interaction => {
             await command.execute(interaction);
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            if (interaction.deferred || interaction.replied) {
+                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+            } else {
+                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            }
         }
     } else if (interaction.isButton()) {
-        if (interaction.customId === 'report') {
-            try {
+        try {
+            if (interaction.customId === 'report') {
                 await interaction.deferUpdate();
 
                 const embed = interaction.message.embeds[0];
@@ -222,7 +226,6 @@ client.on('interactionCreate', async interaction => {
                             .setStyle(ButtonStyle.Danger)
                     );
 
-                // Fetch the report channel from the config and send the report
                 const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
                 if (reportChannel) {
                     await reportChannel.send({ embeds: [reportEmbed], components: [row] });
@@ -231,53 +234,57 @@ client.on('interactionCreate', async interaction => {
                 }
 
                 await interaction.followUp({ content: 'Report has been sent to the moderators.', ephemeral: true });
-            } catch (error) {
-                console.error('Error handling report button interaction:', error);
-                await interaction.followUp({ content: 'There was an error while processing your report.', ephemeral: true });
-            }
-        } else if (interaction.customId === 'approve' || interaction.customId === 'deny') {
-            if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
-                return interaction.reply({ content: 'You do not have permission to approve or deny reports.', ephemeral: true });
-            }
+            } else if (interaction.customId === 'approve' || interaction.customId === 'deny') {
+                if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
+                    return interaction.reply({ content: 'You do not have permission to approve or deny reports.', ephemeral: true });
+                }
 
-            const embed = interaction.message.embeds[0];
-            if (!embed || !embed.author || !embed.author.name) {
-                return interaction.reply({ content: 'Invalid embed data.', ephemeral: true });
-            }
-            const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
-            const guild = await interaction.client.database.server_cache.getGuild(guildId);
+                const embed = interaction.message.embeds[0];
+                if (!embed || !embed.author || !embed.author.name) {
+                    return interaction.reply({ content: 'Invalid embed data.', ephemeral: true });
+                }
+                const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
+                const guild = await interaction.client.database.server_cache.getGuild(guildId);
 
-            if (interaction.customId === 'approve') {
-                guild.blocked = true;
+                if (interaction.customId === 'approve') {
+                    guild.blocked = true;
+                    await guild.save();
+
+                    const row = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('unblock')
+                                .setLabel('Unblock')
+                                .setStyle(ButtonStyle.Secondary)
+                        );
+
+                    await interaction.update({ content: 'Server approved and blocked. You can unblock it if needed.', components: [row] }).catch(console.error);
+                } else if (interaction.customId === 'deny') {
+                    await interaction.update({ content: 'Report dismissed.', components: [] }).catch(console.error);
+                }
+            } else if (interaction.customId === 'unblock') {
+                if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
+                    return interaction.reply({ content: 'You do not have permission to unblock servers.', ephemeral: true });
+                }
+
+                const embed = interaction.message.embeds[0];
+                if (!embed || !embed.author || !embed.author.name) {
+                    return interaction.reply({ content: 'Invalid embed data.', ephemeral: true });
+                }
+                const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
+                const guild = await interaction.client.database.server_cache.getGuild(guildId);
+                guild.blocked = false;
                 await guild.save();
 
-                const row = new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('unblock')
-                            .setLabel('Unblock')
-                            .setStyle(ButtonStyle.Secondary)
-                    );
-
-                await interaction.update({ content: 'Server approved and blocked. You can unblock it if needed.', components: [row] }).catch(console.error);
-            } else if (interaction.customId === 'deny') {
-                await interaction.update({ content: 'Report dismissed.', components: [] }).catch(console.error);
+                await interaction.reply({ content: 'Server unblocked successfully.', ephemeral: true }).catch(console.error);
             }
-        } else if (interaction.customId === 'unblock') {
-            if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
-                return interaction.reply({ content: 'You do not have permission to unblock servers.', ephemeral: true });
+        } catch (error) {
+            console.error('Error handling button interaction:', error);
+            if (interaction.deferred || interaction.replied) {
+                await interaction.followUp({ content: 'There was an error while processing your request.', ephemeral: true });
+            } else {
+                await interaction.reply({ content: 'There was an error while processing your request.', ephemeral: true });
             }
-
-            const embed = interaction.message.embeds[0];
-            if (!embed || !embed.author || !embed.author.name) {
-                return interaction.reply({ content: 'Invalid embed data.', ephemeral: true });
-            }
-            const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
-            const guild = await interaction.client.database.server_cache.getGuild(guildId);
-            guild.blocked = false;
-            await guild.save();
-
-            await interaction.reply({ content: 'Server unblocked successfully.', ephemeral: true }).catch(console.error);
         }
     }
 });
