@@ -15,23 +15,23 @@ module.exports = {
         let emb = rawEmb();
         var guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
 
-        if (guild.description == 0) {
+        if (!guild.description) {
             emb.setDescription("This Server has no description! please set one qwq");
             return interaction.reply({ embeds: [emb.setColor(colors.error)], ephemeral: true });
         }
 
         const gChannel = await interaction.guild.channels.cache.get(guild.channel);
-        if (guild.channel == 0 || !gChannel) {
+        if (!guild.channel || !gChannel) {
             return interaction.reply({ embeds: [emb.setDescription('Please set a valid channel before you bump your server :3').setColor(colors.error)], ephemeral: true });
         }
 
         let bumped_time = guild.time;
         let now = Date.now();
-        if (bumped_time == 0) bumped_time = now - 8.64e+7;
+        if (!bumped_time) bumped_time = now - 8.64e+7;
         let cooldown = 7.2e+6;
         let time = ms(cooldown - (now - bumped_time));
 
-        if (guild.channel == 0) {
+        if (!guild.channel) {
             guild.channel = interaction.channel.id;
             await guild.save();
         } else {
@@ -73,6 +73,18 @@ module.exports = {
             console.log(interaction.guild.name + "   >>>  bumped!");
             var channel = await interaction.client.guilds.cache.get(interaction.client.supportGuildId).channels.cache.get(interaction.client.supportGuildLogChannelId);
             channel.send({ embeds: [emb.setDescription(interaction.user.tag + ' bumped ' + interaction.guild.name)] });
+
+            // Schedule a reminder to ping the user after 2 hours
+            setTimeout(() => {
+                const reminderEmbed = new MessageEmbed()
+                    .setColor(colors.info)
+                    .setDescription("It's time to bump again!")
+                    .setTitle("Bump Reminder");
+
+                interaction.user.send({ embeds: [reminderEmbed] }).catch(() => {
+                    console.log(`Failed to send bump reminder to ${interaction.user.tag}`);
+                });
+            }, 7.2e+6); // 2 hours in milliseconds
         }
     }
 };
