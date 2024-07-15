@@ -148,7 +148,7 @@ module.exports = {
             if (!ch) continue;
             i++;
             ch.send({ embeds: [emb], components: [row] }).then(message => {
-                const filter = i => i.customId === 'report' && i.user.id === user.id;
+                const filter = i => i.customId === 'report';
                 const collector = message.createMessageComponentCollector({ filter, time: 60000 });
 
                 collector.on('collect', async i => {
@@ -158,29 +158,27 @@ module.exports = {
                         } catch (error) {
                             console.error('Failed to defer update:', error);
                         }
-                        const disabledRow = new ActionRowBuilder()
+                        const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
+                        const reportEmbed = new EmbedBuilder()
+                            .setTitle('Reported Server')
+                            .setDescription(`Server: ${interaction.guild.name}\nReported by: ${i.user.tag}`)
+                            .setColor(config.colors.error)
+                            .setTimestamp();
+
+                        const reportRow = new ActionRowBuilder()
                             .addComponents(
                                 new ButtonBuilder()
-                                    .setLabel('Join Server')
-                                    .setStyle(ButtonStyle.Link)
-                                    .setURL(`https://discord.gg/${invite.code}`)
-                                    .setDisabled(true),
+                                    .setCustomId('approve')
+                                    .setLabel('Approve')
+                                    .setStyle(ButtonStyle.Success),
                                 new ButtonBuilder()
-                                    .setLabel('Support Server')
-                                    .setStyle(ButtonStyle.Link)
-                                    .setURL(config.supportInviteLink)
-                                    .setDisabled(true),
-                                new ButtonBuilder()
-                                    .setCustomId('report')
-                                    .setLabel('Report')
+                                    .setCustomId('deny')
+                                    .setLabel('Deny')
                                     .setStyle(ButtonStyle.Danger)
-                                    .setDisabled(true)
                             );
-                        try {
-                            await i.editReply({ components: [disabledRow] });
-                        } catch (error) {
-                            console.error('Failed to edit reply:', error);
-                        }
+
+                        await reportChannel.send({ embeds: [reportEmbed], components: [reportRow] });
+                        await i.followUp({ content: 'Ad reported successfully.', ephemeral: true });
                     }
                 });
 
