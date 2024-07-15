@@ -1,119 +1,193 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
-const ms = require('parse-ms');
-const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
-const config = require('../config'); // Import config
+const fs = require("fs");
+const { join } = require("path");
+const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder } = require("discord.js");
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const config = require('./config'); // Import the configuration module
 
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('bump')
-        .setDescription('Bumps your Server'),
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
+    ],
+    partials: [Partials.Channel]
+});
 
-    async execute(interaction) {
-        const { colors, emotes } = interaction.client;
+const rawEmb = () => {
+    return new EmbedBuilder()
+        .setColor(config.colors.info);
+};
+module.exports = { rawEmb };
 
-        let emb = rawEmb();
-        var guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
+client.ownerID = config.ownerID;
+client.colors = config.colors;
+client.emotes = config.emotes;
+client.supportGuildId = config.supportGuildId;
+client.supportGuildLogChannelId = config.supportGuildLogChannelId;
 
-        if (!guild.description) {
-            emb.setDescription("This Server has no description! please set one qwq");
-            return interaction.reply({ embeds: [emb.setColor(colors.error)], ephemeral: true });
+if (!config.Bottoken) throw new Error('Please enter a Bot Token!');
+
+//==================================================================================================================================================
+// Loading Things
+//==================================================================================================================================================
+const { Server, syncDatabase } = require('./database/dbInit');
+var server_cache = new Collection();
+Reflect.defineProperty(server_cache, "getGuild", {
+    /**
+     * @param {number} id Guild ID
+     * @returns {Model} new User
+     */
+    value: async function (id) {
+        var guild = server_cache.get(id);
+        if (!guild) guild = await Server.findOne({ where: { key: id } });
+        if (!guild) {
+            guild = await Server.create({ key: id });
+            server_cache.set(id, guild);
         }
-
-        const gChannel = await interaction.guild.channels.cache.get(guild.channel);
-        if (!guild.channel || !gChannel) {
-            return interaction.reply({ embeds: [emb.setDescription('Please set a valid channel before you bump your server :3').setColor(colors.error)], ephemeral: true });
+        return guild;
+    }
+});
+Reflect.defineProperty(server_cache, "getChannel", {
+    /**
+     *  @param {number} id Channel ID
+     * @returns {Model} new User
+     */
+    value: async function () {
+        let arr = [];
+        var channels = await Server.findAll();
+        channels.forEach(entry => arr.push(entry.channel));
+        return arr;
+    }
+});
+// Sync
+const initDatabase = async () => {
+    await syncDatabase();
+    try {
+        for (let entr of (await Server.findAll())) {
+            server_cache.set(entr.user_id, entr);
         }
-
-        let bumped_time = guild.time;
-        let now = Date.now();
-        if (!bumped_time) bumped_time = now - 8.64e+7;
-        let cooldown = 7.2e+6;
-        let time = ms(cooldown - (now - bumped_time));
-
-        if (!guild.channel) {
-            guild.channel = interaction.channel.id;
-            await guild.save();
-        } else {
-            let F = interaction.client.channels.resolve(guild.channel);
-            if (!F) {
-                guild.channel = interaction.channel.id;
-                await guild.save();
-            }
-        }
-
-        let invite;
-        try {
-            invite = await interaction.channel.createInvite({
-                maxAge: 86400
-            }, `Bump Invite`);
-        } catch {
-            return interaction.reply({ embeds: [emb.setDescription("**Can't create my invite link qwq**").setColor(colors.error)], ephemeral: true });
-        }
-
-        let segments = [];
-        if (time.hours > 0) segments.push(time.hours + ' Hour' + ((time.hours == 1) ? '' : 's'));
-        if (time.minutes > 0) segments.push(time.minutes + ' Minute' + ((time.minutes == 1) ? '' : 's'));
-
-        const timeString = segments.join('\n');
-
-        // Check if the user is the owner
-        if (interaction.user.id !== config.ownerID && cooldown - (now - bumped_time) > 0) {
-            emb.setColor(colors.error)
-                .setDescription(`**${timeString}**`)
-                .setTitle("You have to wait ;-;");
-            return interaction.reply({ embeds: [emb], ephemeral: true });
-        } else {
-            guild.time = now;
-            await guild.save();
-            const count = await bump(interaction.guild.id, interaction.guild.name, interaction, interaction.user, interaction.client.emotes, interaction.client.colors); // Pass the user object
-            emb.setDescription(`**Bumped successfully to ${count} Server**`)
-                .setColor(colors.success);
-            interaction.reply({ embeds: [emb] });
-            console.log(interaction.guild.name + "   >>>  bumped!");
-            var channel = await interaction.client.guilds.cache.get(interaction.client.supportGuildId).channels.cache.get(interaction.client.supportGuildLogChannelId);
-            channel.send({ embeds: [emb.setDescription(interaction.user.tag + ' bumped ' + interaction.guild.name)] });
-
-            // Schedule a reminder to ping the user after 2 hours
-            setTimeout(() => {
-                const reminderEmbed = new MessageEmbed()
-                    .setColor(colors.info)
-                    .setDescription("It's time to bump again!")
-                    .setTitle("Bump Reminder");
-
-                interaction.user.send({ embeds: [reminderEmbed] }).catch(() => {
-                    console.log(`Failed to send bump reminder to ${interaction.user.tag}`);
-                });
-            }, 7.2e+6); // 2 hours in milliseconds
-        }
+        console.log(" >  Cached Database Entries");
+    } catch (e) {
+        console.log(" >  Error While Caching Database");
+        console.log(e);
+        // process.exit(1);
     }
 };
-
-async function bump(id, title, interaction, user, emotes, colors) {
-    var G = await interaction.client.database.server_cache.getGuild(id);
-    let invite = await interaction.channel.createInvite({});
-    let emb = rawEmb();
-
-    emb.setTitle(title)
-        .setDescription(` \n **Description:**\n ${G.description}
-        \n **Invite: [click](${"https://discord.gg/" + invite.code})**
-        \n :globe_with_meridians: ${interaction.guild.preferredLocale}
-        \n ${emotes.user} ${interaction.guild.memberCount}
-        `)
-        .setColor(G.color != 0 ? G.color : colors.info)
-        .setAuthor({ name: user.username + " bumped: ", iconURL: interaction.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
-        .setTimestamp();
-
-    let ch = 0;
-    let channels = await interaction.client.database.server_cache.getChannel();
-    var i = 0;
-
-    for (const c of channels) {
-        if (c == 0) return;
-        ch = await interaction.client.channels.resolve(c);
-        if (!ch) return;
-        i++;
-        ch.send({ embeds: [emb] }).catch(() => { });
+client.database = { server_cache };
+//==================================================================================================================================================
+// Initialize the Commands
+//==================================================================================================================================================
+client.commands = new Collection();
+const commandFiles = fs
+    .readdirSync("./commands")
+    .filter(file => file.endsWith(".js"));
+const commands = [];
+for (const file of commandFiles) {
+    try {
+        const command = require(`./commands/${file}`);
+        if (!command.data || !command.data.name) {
+            console.error(`The command at './commands/${file}' is missing a required "data" or "name" property.`);
+            continue;
+        }
+        client.commands.set(command.data.name, command);
+        commands.push(command.data.toJSON());
+    } catch (error) {
+        console.error(`Error loading command at './commands/${file}':`, error);
     }
-    return i - 1;
 }
+// Register slash commands
+const rest = new REST({ version: '9' }).setToken(config.Bottoken);
+//==================================================================================================================================================
+// Starting the Bot
+//==================================================================================================================================================
+const start = async () => {
+    try {
+        console.log("Logging in...");
+        await client.login(config.Bottoken).catch(e => {
+            console.log(e.code);
+            switch (e.code) {
+                case 'TOKEN_INVALID':
+                    console.error(" >  Invalid Token");
+                    break;
+                case 500:
+                    console.error(" >  Fetch Error");
+                    break;
+                default:
+                    console.error(" >  Unknown Error");
+                    console.error(' > ' + e);
+                    break;
+            }
+            setTimeout(() => { throw e }, 5000);
+        });
+        await initDatabase();
+    } catch (e) {
+        console.log(e);
+    }
+};
+start();
+client.on("ready", async () => {
+    if (!config.supportGuildId) throw new Error('Please enter your Support-Guild-ID');
+    if (!config.supportGuildLogChannelId) throw new Error('Please enter your Support-Guild-Log-Channel-ID');
+    console.log(" >  Logged in as: " + client.user.tag);
+    client.user.setPresence({ activities: [{ name: "Bump your server", type: 'PLAYING' }], status: 'idle' });
+    try {
+        console.log('Started refreshing application (/) commands.');
+
+        await rest.put(
+            Routes.applicationCommands(client.user.id),
+            { body: commands },
+        );
+
+        console.log('Successfully reloaded application (/) commands.');
+    } catch (error) {
+        console.error(error);
+    }
+});
+client.on('guildMemberAdd', async member => {
+    let { guild } = member;
+    let settings = await client.database.server_cache.getGuild(guild.id);
+    if (!settings.wlc) return;
+    let ch = await guild.channels.resolve(settings.wlc);
+    if (!ch) {
+        settings.wlc = undefined;
+        return settings.save();
+    }
+    let emb = rawEmb().setTitle('Member Joined').setDescription(`${member} joined **${guild.name}**! Welcome you'r member No. **${guild.memberCount}**`);
+    ch.send({ embeds: [emb] }).catch(() => { });
+});
+client.on('guildCreate', async guild => {
+    let supGuild = await client.guilds.resolve(config.supportGuildId);
+    let channel = await supGuild.channels.resolve(config.supportGuildLogChannelId);
+    let owner = await guild.fetchOwner();
+    let emb = rawEmb()
+        .setTitle('Server joined')
+        .setColor(config.colors.success)
+        .setDescription(`**Server Name:** ${guild.name}\n**Server ID:** ${guild.id}\n**Owner Name:** ${owner.user.tag}\n**Owner ID:** ${owner.user.id}`);
+    channel.send({ embeds: [emb] }).catch(() => { });
+});
+
+client.on('guildMemberRemove', async member => {
+    let { guild } = member;
+    let settings = await client.database.server_cache.getGuild(guild.id);
+    if (!settings.gb) return;
+    let ch = await guild.channels.resolve(settings.gb);
+    if (!ch) {
+        settings.gb = undefined;
+        return settings.save();
+    }
+    let emb = rawEmb().setTitle('Member Leaved').setDescription(`${member} leaved from **${guild.name}** Bye Bye`);
+    ch.send({ embeds: [emb] }).catch(() => { });
+});
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isCommand()) return;
+    const command = client.commands.get(interaction.commandName);
+    if (!command) return;
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
+});
