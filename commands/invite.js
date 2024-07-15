@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageActionRow, MessageButton } = require('discord.js');
 const { rawEmb } = require('../index');
 const config = require('../config'); // Import config
 
@@ -25,15 +26,24 @@ module.exports = {
             invite = await inviteChannel.createInvite({ maxAge: 0, maxUses: 0 });
         } catch (error) {
             console.error('Error creating support server invite:', error);
-            invite = "https://discord.gg/dNR6Dn3Yjt"; // Fallback invite link
+            invite = "https://discord.gg/KJjZnxZ"; // Fallback invite link
         }
 
         let emb = rawEmb()
-            .setTitle("Invite Links")
-            .addFields(
-                { name: "**Bot-Invite**", value: `[Click](${link})` },
-                { name: "**Support Server**", value: `[Click](${invite.url})` }
+            .setTitle("Invite Links");
+
+        const row = new MessageActionRow()
+            .addComponents(
+                new MessageButton()
+                    .setLabel('Bot Invite')
+                    .setStyle('LINK')
+                    .setURL(link),
+                new MessageButton()
+                    .setLabel('Support Server')
+                    .setStyle('LINK')
+                    .setURL(invite.url)
             );
-        interaction.reply({ embeds: [emb] });
+
+        interaction.reply({ embeds: [emb], components: [row] });
     }
 };
