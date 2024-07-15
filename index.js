@@ -226,7 +226,16 @@ client.on('interactionCreate', async interaction => {
             if (interaction.customId === 'approve') {
                 guild.blocked = true;
                 await guild.save();
-                await interaction.update({ content: 'Server approved. You can unblock it if needed.', components: [] });
+
+                const row = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('unblock')
+                            .setLabel('Unblock')
+                            .setStyle(ButtonStyle.Secondary)
+                    );
+
+                await interaction.update({ content: 'Server approved. You can unblock it if needed.', components: [row] });
             } else if (interaction.customId === 'deny') {
                 await interaction.update({ content: 'Report dismissed.', components: [] });
             }
