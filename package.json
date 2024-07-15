@@ -1,5 +1,5 @@
-{
-    "name": "bump-bot",
+{ 
+   "name": "bump-bot",
     "version": "1.0.0",
     "description": "Bump Bot",
     "main": "index.js",
@@ -21,9 +21,13 @@
         "discord.js": "^14.3.0",
         "parse-ms": "^2.1.0",
         "sequelize": "^6.21.1",
-        "sqlite3": "^5.1.6"
+        "sqlite3": "^5.1.6",
+        "node-fetch": "^3.0.0"
     },
     "optionalDependencies": {
         "dotenv": "^16.0.3"
+    },
+    "devDependencies": {
+        "pm2": "^5.1.1"
     }
 }
