@@ -139,7 +139,59 @@ module.exports = {
             const ch = await interaction.client.channels.resolve(c);
             if (!ch) continue;
             i++;
-            ch.send({ embeds: [emb], components: [row] }).catch(() => { });
+            ch.send({ embeds: [emb], components: [row] }).then(message => {
+                const filter = i => i.customId === 'report' && i.user.id === user.id;
+                const collector = message.createMessageComponentCollector({ filter, time: 60000 });
+
+                collector.on('collect', async i => {
+                    if (i.customId === 'report') {
+                        await i.deferUpdate();
+                        const disabledRow = new ActionRowBuilder()
+                            .addComponents(
+                                new ButtonBuilder()
+                                    .setLabel('Join Server')
+                                    .setStyle(ButtonStyle.Link)
+                                    .setURL(`https://discord.gg/${invite.code}`)
+                                    .setDisabled(true),
+                                new ButtonBuilder()
+                                    .setLabel('Support Server')
+                                    .setStyle(ButtonStyle.Link)
+                                    .setURL(config.supportInviteLink)
+                                    .setDisabled(true),
+                                new ButtonBuilder()
+                                    .setCustomId('report')
+                                    .setLabel('Report')
+                                    .setStyle(ButtonStyle.Danger)
+                                    .setDisabled(true)
+                            );
+                        await i.editReply({ components: [disabledRow] });
+                    }
+                });
+
+                collector.on('end', collected => {
+                    if (collected.size === 0) {
+                        const disabledRow = new ActionRowBuilder()
+                            .addComponents(
+                                new ButtonBuilder()
+                                    .setLabel('Join Server')
+                                    .setStyle(ButtonStyle.Link)
+                                    .setURL(`https://discord.gg/${invite.code}`)
+                                    .setDisabled(true),
+                                new ButtonBuilder()
+                                    .setLabel('Support Server')
+                                    .setStyle(ButtonStyle.Link)
+                                    .setURL(config.supportInviteLink)
+                                    .setDisabled(true),
+                                new ButtonBuilder()
+                                    .setCustomId('report')
+                                    .setLabel('Report')
+                                    .setStyle(ButtonStyle.Danger)
+                                    .setDisabled(true)
+                            );
+                        message.edit({ components: [disabledRow] });
+                    }
+                });
+            }).catch(() => { });
         }
         return i; // Return the count of successful sends
     }
