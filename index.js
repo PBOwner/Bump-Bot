@@ -1,6 +1,6 @@
 const fs = require("fs"); // Import the fs module
 const { join } = require("path");
-const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, MessageActionRow, MessageButton } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const config = require('./config'); // Import config
@@ -127,7 +127,8 @@ const start = async () => {
     }
 };
 start();
-client.on("ready", async () => {
+
+client.once("ready", async () => { // Use `once` to ensure it runs only once
     if (!config.supportGuildId) throw new Error('Please enter your Support-Guild-ID');
     if (!config.supportGuildLogChannelId) throw new Error('Please enter your Support-Guild-Log-Channel-ID');
     console.log(" >  Logged in as: " + client.user.tag);
@@ -145,6 +146,7 @@ client.on("ready", async () => {
         console.error(error);
     }
 });
+
 client.on('guildMemberAdd', async member => {
     let { guild } = member;
     let settings = await client.database.server_cache.getGuild(guild.id);
@@ -157,6 +159,7 @@ client.on('guildMemberAdd', async member => {
     let emb = rawEmb().setTitle('Member Joined').setDescription(`${member} joined **${guild.name}**! Welcome you'r member No. **${guild.memberCount}**`);
     ch.send({ embeds: [emb] }).catch(() => { });
 });
+
 client.on('guildCreate', async guild => {
     let supGuild = await client.guilds.resolve(config.supportGuildId);
     let channel = await supGuild.channels.resolve(config.supportGuildLogChannelId);
@@ -180,6 +183,7 @@ client.on('guildMemberRemove', async member => {
     let emb = rawEmb().setTitle('Member Leaved').setDescription(`${member} leaved from **${guild.name}** Bye Bye`);
     ch.send({ embeds: [emb] }).catch(() => { });
 });
+
 client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
@@ -196,16 +200,16 @@ client.on('interactionCreate', async interaction => {
             const reportChannel = await interaction.client.channels.fetch(reportChannelId);
             const embed = interaction.message.embeds[0];
 
-            const row = new MessageActionRow()
+            const row = new ActionRowBuilder()
                 .addComponents(
-                    new MessageButton()
+                    new ButtonBuilder()
                         .setCustomId('approve')
                         .setLabel('Approve')
-                        .setStyle('SUCCESS'),
-                    new MessageButton()
+                        .setStyle(ButtonStyle.Success),
+                    new ButtonBuilder()
                         .setCustomId('deny')
                         .setLabel('Deny')
-                        .setStyle('DANGER')
+                        .setStyle(ButtonStyle.Danger)
                 );
 
             reportChannel.send({ embeds: [embed], components: [row] });
