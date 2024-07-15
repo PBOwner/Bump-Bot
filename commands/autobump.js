@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
-const { ownerID } = require('../index'); // Import ownerId from index.js
+const config = require('../config'); // Import config
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -8,7 +8,7 @@ module.exports = {
         .setDescription('Toggles automatic bumping every 2 hours (Owner only)'),
 
     async execute(interaction) {
-        if (interaction.user.id !== ownerID) {
+        if (interaction.user.id !== config.ownerID) {
             return interaction.reply({ content: 'You are not authorized to use this command.', ephemeral: true });
         }
 
