@@ -1,5 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const ms = require('parse-ms');
 const config = require('../config'); // Import config
 
@@ -68,10 +67,12 @@ module.exports = {
             } else {
                 guild.time = now;
                 guild.lastBumper = interaction.user.id; // Store the user ID of the last person who bumped
+                guild.bumpCount = (guild.bumpCount || 0) + 1; // Increment the bump count
                 await guild.save();
                 const count = await module.exports.bump(interaction.guild.id, interaction.guild.name, interaction, interaction.user, interaction.client.emotes, interaction.client.colors); // Pass the user object
                 embed.setDescription(`**Bumped successfully to ${count} Server${count === 1 ? '' : 's'}**`)
-                    .setColor(colors.success);
+                    .setColor(colors.success)
+                    .setFooter({ text: `Total Bumps: ${guild.bumpCount}` }); // Add the total bump count to the footer
                 await interaction.editReply({ embeds: [embed] });
                 console.log(interaction.guild.name + "   >>>  bumped!");
                 var channel = await interaction.client.guilds.cache.get(interaction.client.supportGuildId).channels.cache.get(interaction.client.supportGuildLogChannelId);
