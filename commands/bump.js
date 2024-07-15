@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const ms = require('parse-ms');
 const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
 const config = require('../config'); // Import config
@@ -103,6 +103,24 @@ async function bump(id, title, interaction, user, emotes, colors) {
         .setAuthor({ name: user.username + " bumped: ", iconURL: interaction.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
         .setTimestamp();
 
+    let supportInviteLink;
+    try {
+        // Fetch the support server
+        const supportGuild = await interaction.client.guilds.fetch(config.supportGuildId);
+        // Create an invite for the support server
+        const inviteChannel = supportGuild.channels.cache.find(channel =>
+            channel.isTextBased() && channel.permissionsFor(supportGuild.members.me).has(PermissionsBitField.Flags.CreateInstantInvite)
+        );
+        if (!inviteChannel) {
+            throw new Error('No suitable channel found to create an invite link.');
+        }
+        const supportInvite = await inviteChannel.createInvite({ maxAge: 0, maxUses: 0 });
+        supportInviteLink = `https://discord.gg/${supportInvite.code}`;
+    } catch (error) {
+        console.error('Error creating support server invite:', error);
+        supportInviteLink = "https://discord.gg/KJjZnxZ"; // Fallback invite link
+    }
+
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
@@ -112,7 +130,7 @@ async function bump(id, title, interaction, user, emotes, colors) {
             new ButtonBuilder()
                 .setLabel('Support Server')
                 .setStyle(ButtonStyle.Link)
-                .setURL(`https://discord.gg/${config.supportGuildId}`),
+                .setURL(supportInviteLink),
             new ButtonBuilder()
                 .setCustomId('report')
                 .setLabel('Report')
