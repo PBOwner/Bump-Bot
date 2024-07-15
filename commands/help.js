@@ -1,5 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { rawEmb } = require('../index');
+    const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const config = require('../config'); // Import config
 
 module.exports = {
@@ -14,31 +13,31 @@ module.exports = {
     async execute(interaction) {
         const { colors } = interaction.client;
         const githubLink = 'https://github.com/PBOwner/Bump-Bot';
-        let emb = rawEmb()
+        let embed = new EmbedBuilder()
             .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
 
         let commandName = interaction.options.getString('command');
         if (commandName) {
             let command = interaction.client.commands.get(commandName.toLowerCase());
             if (!command) {
-                emb.setTitle("Command not found qwq");
-                return interaction.reply({ embeds: [emb], ephemeral: true });
+                embed.setTitle("Command not found qwq");
+                return interaction.reply({ embeds: [embed], ephemeral: true });
             }
-            emb.setTitle(command.data.name)
+            embed.setTitle(command.data.name)
                 .addFields(
                     { name: "**Description:**", value: command.data.description || 'No description available.' },
                     { name: "**Usage:**", value: `/${command.data.name}` }
                 );
 
-            interaction.reply({ embeds: [emb], ephemeral: true });
+            interaction.reply({ embeds: [embed], ephemeral: true });
         } else {
             let commandList = [];
             for (let [name, cmd] of interaction.client.commands) {
                 commandList.push(`**${cmd.data.name}** - ${cmd.data.description || 'No description available.'}`);
             }
-            emb.setDescription(commandList.join("\n") + `\n\n[Github](${githubLink})`)
+            embed.setDescription(commandList.join("\n") + `\n\n[Github](${githubLink})`)
                 .setTitle('My Commands');
-            interaction.reply({ embeds: [emb.setFooter({ text: `Type /help <command> for more details || ${commandList.length} Commands` })], ephemeral: true });
+            interaction.reply({ embeds: [embed.setFooter({ text: `Type /help <command> for more details || ${commandList.length} Commands` })], ephemeral: true });
         }
     }
 };
