@@ -14,12 +14,24 @@ module.exports = {
         // Set to store unique user IDs
         const uniqueUserIds = new Set();
 
+        // Function to fetch all members of a guild
+        const fetchAllMembers = async (guild) => {
+            let members = [];
+            try {
+                members = await guild.members.fetch(); // Fetch all members
+            } catch (error) {
+                console.error(`Failed to fetch members for guild ${guild.id}:`, error);
+            }
+            return members;
+        };
+
         // Iterate through each guild and collect unique user IDs
-        guilds.forEach(guild => {
-            guild.members.cache.forEach(member => {
+        for (const guild of guilds.values()) {
+            const members = await fetchAllMembers(guild);
+            members.forEach(member => {
                 uniqueUserIds.add(member.user.id);
             });
-        });
+        }
 
         const serverCount = guilds.size;
         const userCount = uniqueUserIds.size;
@@ -35,4 +47,4 @@ module.exports = {
 
         return interaction.reply({ embeds: [emb] });
     }
-}
+};
