@@ -14,7 +14,7 @@ module.exports = {
      * @param {String[]} args
      */
     async execute(msg, args) {
-        const { colors, emotes } = msg.client;
+        const { colors, emotes, ownerId } = msg.client;
 
         let emb = rawEmb();
         var guild = await msg.client.database.server_cache.getGuild(msg.guild.id);
@@ -61,7 +61,8 @@ module.exports = {
 
         const timeString = segments.join('\n');
 
-        if (cooldown - (now - bumped_time) > 0) {
+        // Check if the user is the owner
+        if (msg.author.id !== ownerId && cooldown - (now - bumped_time) > 0) {
             emb.setColor(colors.error)
                 .setDescription(`**${timeString}**`)
                 .setTitle("You have to wait ;-;");
