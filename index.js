@@ -118,20 +118,6 @@ for (const file of commandFiles) {
 // Register slash commands
 const rest = new REST({ version: '9' }).setToken(Bottoken);
 
-(async () => {
-    try {
-        console.log('Started refreshing application (/) commands.');
-
-        await rest.put(
-            Routes.applicationGuildCommands(client.user.id, supportGuildId),
-            { body: commands },
-        );
-
-        console.log('Successfully reloaded application (/) commands.');
-    } catch (error) {
-        console.error(error);
-    }
-})();
 //==================================================================================================================================================
 // Starting the Bot
 //==================================================================================================================================================
@@ -162,11 +148,24 @@ const start = async () => {
 }
 start();
 
-client.on("ready", () => {
+client.on("ready", async () => {
     if (!supportGuildId) throw new Error('Please enter your Support-Guild-ID')
     if (!supportGuildLogChannelId) throw new Error('Please enter your Support-Guild-Log-Channel-ID')
     console.log(" >  Logged in as: " + client.user.tag);
     client.user.setPresence({ activities: [{ name: "Bump your server", type: 'PLAYING' }], status: 'idle' });
+
+    try {
+        console.log('Started refreshing application (/) commands.');
+
+        await rest.put(
+            Routes.applicationGuildCommands(client.user.id, supportGuildId),
+            { body: commands },
+        );
+
+        console.log('Successfully reloaded application (/) commands.');
+    } catch (error) {
+        console.error(error);
+    }
 });
 
 client.on('guildMemberAdd', async member => {
