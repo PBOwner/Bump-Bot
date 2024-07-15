@@ -21,7 +21,7 @@ module.exports = {
 
         emb.setFooter({ text: "Use /preview to see your text" });
 
-        // Use the text as-is for the embed description to support multi-line automatically
-        return message.channel.send({ embeds: [emb.setDescription("**Changed description successfully to:** \n" + text).setColor(colors.success)] });
+        // Use the text exactly as it is entered for the embed description to support multi-line automatically
+        return message.channel.send({ embeds: [emb.setDescription(`**Changed description successfully to:** \n${text}`).setColor(colors.success)] });
     }
 };
