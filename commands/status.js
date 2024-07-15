@@ -64,11 +64,11 @@ module.exports = {
             // Log the current presence before setting the new one
             console.log('Current Presence:', interaction.client.user.presence);
 
-            // Set the new presence
-            await interaction.client.user.setPresence({
-                activities: [{ name: text, type: type }],
-                status: status
-            });
+            // Set the new status
+            await interaction.client.user.setPresence({ status: status });
+
+            // Set the new activity
+            await interaction.client.user.setActivity(text, { type: type });
 
             // Log the new presence after setting it
             console.log('New Presence:', interaction.client.user.presence);
@@ -88,7 +88,7 @@ module.exports = {
 
             return interaction.reply({ embeds: [emb] });
         } catch (error) {
-            console.error('Error setting presence:', error);
+            console.error('Error setting presence or activity:', error);
             return interaction.reply({
                 embeds: [emb.setDescription("Failed to set status").setColor(colors.error)],
                 ephemeral: true
