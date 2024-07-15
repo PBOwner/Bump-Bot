@@ -153,7 +153,11 @@ module.exports = {
 
                 collector.on('collect', async i => {
                     if (i.customId === 'report') {
-                        await i.deferUpdate();
+                        try {
+                            await i.deferUpdate();
+                        } catch (error) {
+                            console.error('Failed to defer update:', error);
+                        }
                         const disabledRow = new ActionRowBuilder()
                             .addComponents(
                                 new ButtonBuilder()
@@ -172,7 +176,11 @@ module.exports = {
                                     .setStyle(ButtonStyle.Danger)
                                     .setDisabled(true)
                             );
-                        await i.editReply({ components: [disabledRow] });
+                        try {
+                            await i.editReply({ components: [disabledRow] });
+                        } catch (error) {
+                            console.error('Failed to edit reply:', error);
+                        }
                     }
                 });
 
@@ -196,10 +204,10 @@ module.exports = {
                                     .setStyle(ButtonStyle.Danger)
                                     .setDisabled(true)
                             );
-                        message.edit({ components: [disabledRow] });
+                        message.edit({ components: [disabledRow] }).catch(console.error);
                     }
                 });
-            }).catch(() => { });
+            }).catch(console.error);
         }
         return i; // Return the count of successful sends
     }
