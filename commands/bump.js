@@ -98,52 +98,53 @@ module.exports = {
                 }
             }, 7.2e+6); // 2 hours in milliseconds
         }
+    },
+
+    // Export the bump function
+    bump: async function (id, title, interaction, user, emotes, colors) {
+        var G = await interaction.client.database.server_cache.getGuild(id);
+        let invite = await interaction.channel.createInvite({});
+        let emb = rawEmb();
+
+        emb.setTitle(title)
+            .setDescription(` \n **Description:**\n ${G.description}
+            \n :globe_with_meridians: ${interaction.guild.preferredLocale}
+            \n ${emotes.user} ${interaction.guild.memberCount}
+            `)
+            .setColor(G.color != 0 ? G.color : colors.info)
+            .setAuthor({ name: user.username + " bumped: ", iconURL: interaction.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
+            .setTimestamp();
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setLabel('Join Server')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(`https://discord.gg/${invite.code}`),
+                new ButtonBuilder()
+                    .setLabel('Support Server')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(config.supportInviteLink),
+                new ButtonBuilder()
+                    .setCustomId('report')
+                    .setLabel('Report')
+                    .setStyle(ButtonStyle.Danger),
+                new ButtonBuilder()
+                    .setCustomId('bump')
+                    .setLabel('Bump')
+                    .setStyle(ButtonStyle.Success) // Green button to bump again
+            );
+
+        let channels = await interaction.client.database.server_cache.getChannel();
+        let i = 0;
+
+        for (const c of channels) {
+            if (c === 0) continue;
+            const ch = await interaction.client.channels.resolve(c);
+            if (!ch) continue;
+            i++;
+            ch.send({ embeds: [emb], components: [row] }).catch(() => { });
+        }
+        return i; // Return the count of successful sends
     }
 };
-
-async function bump(id, title, interaction, user, emotes, colors) {
-    var G = await interaction.client.database.server_cache.getGuild(id);
-    let invite = await interaction.channel.createInvite({});
-    let emb = rawEmb();
-
-    emb.setTitle(title)
-        .setDescription(` \n **Description:**\n ${G.description}
-        \n :globe_with_meridians: ${interaction.guild.preferredLocale}
-        \n ${emotes.user} ${interaction.guild.memberCount}
-        `)
-        .setColor(G.color != 0 ? G.color : colors.info)
-        .setAuthor({ name: user.username + " bumped: ", iconURL: interaction.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
-        .setTimestamp();
-
-    const row = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setLabel('Join Server')
-                .setStyle(ButtonStyle.Link)
-                .setURL(`https://discord.gg/${invite.code}`),
-            new ButtonBuilder()
-                .setLabel('Support Server')
-                .setStyle(ButtonStyle.Link)
-                .setURL(config.supportInviteLink),
-            new ButtonBuilder()
-                .setCustomId('report')
-                .setLabel('Report')
-                .setStyle(ButtonStyle.Danger),
-            new ButtonBuilder()
-                .setCustomId('bump')
-                .setLabel('Bump Again')
-                .setStyle(ButtonStyle.Success) // Green button to bump again
-        );
-
-    let channels = await interaction.client.database.server_cache.getChannel();
-    let i = 0;
-
-    for (const c of channels) {
-        if (c === 0) continue;
-        const ch = await interaction.client.channels.resolve(c);
-        if (!ch) continue;
-        i++;
-        ch.send({ embeds: [emb], components: [row] }).catch(() => { });
-    }
-    return i; // Return the count of successful sends
-}
