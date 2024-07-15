@@ -36,7 +36,14 @@ module.exports = {
                     { name: 'Invisible', value: 'invisible' }
                 ]
             }
-        ]
+        ],
+        toJSON() {
+            return {
+                name: this.name,
+                description: this.description,
+                options: this.options
+            };
+        }
     },
 
     async execute(interaction) {
