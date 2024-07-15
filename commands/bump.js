@@ -84,7 +84,7 @@ module.exports = {
                 const count = await module.exports.bump(interaction.guild.id, interaction.guild.name, interaction, interaction.user, interaction.client.emotes, interaction.client.colors); // Pass the user object
                 embed.setDescription(`**Bumped successfully to ${count} Server${count === 1 ? '' : 's'}**`)
                     .setColor(colors.success)
-                    .setFooter({ text: `Total Bumps: ${guild.bumpCount}` }); // Add the total bump count to the footer
+                    .setFooter({ text: `Total Bumps: ${guild.bumpCount} | Guild ID: ${interaction.guild.id}` }); // Add the total bump count and guild ID to the footer
                 await interaction.editReply({ embeds: [embed] });
                 console.log(interaction.guild.name + "   >>>  bumped!");
                 var channel = await interaction.client.guilds.cache.get(interaction.client.supportGuildId).channels.cache.get(interaction.client.supportGuildLogChannelId);
@@ -138,6 +138,7 @@ module.exports = {
             `)
             .setColor(G.color != 0 ? G.color : colors.info)
             .setAuthor({ name: user.username + " bumped: ", iconURL: interaction.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
+            .setFooter({ text: `Guild ID: ${interaction.guild.id}` }) // Add the guild ID to the footer
             .setTimestamp();
 
         const row = new ActionRowBuilder()
@@ -180,6 +181,7 @@ module.exports = {
                             .setTitle('Reported Server')
                             .setDescription(`Server: ${interaction.guild.name}\nReported by: ${i.user.tag}\n\n**Server Description:**\n${G.description}`)
                             .setColor(config.colors.error)
+                            .setFooter({ text: `Guild ID: ${interaction.guild.id}` }) // Add the guild ID to the footer
                             .setTimestamp();
 
                         const reportRow = new ActionRowBuilder()
