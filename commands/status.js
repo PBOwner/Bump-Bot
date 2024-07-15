@@ -1,27 +1,26 @@
-const { Message } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { rawEmb } = require('../index');
 
 module.exports = {
-    name: 'status',
-    syntax: 'status',
-    args: true,
-    description: 'Change the bot\'s status',
-    perm: 'ADMINISTRATOR',
-    commands: ['status'],
+    data: new SlashCommandBuilder()
+        .setName('status')
+        .setDescription('Change the bot\'s status')
+        .addStringOption(option =>
+            option.setName('status')
+                .setDescription('The status to set')
+                .setRequired(true)),
 
-    /**
-     * @param {Message} msg
-     * @param {String[]} args
-     */
-    async execute(msg, args) {
-        const { colors, emotes } = msg.client;
+    async execute(interaction) {
+        const { colors } = interaction.client;
         let emb = rawEmb();
-        if (msg.author.id !== msg.client.ownerID) {
-            return msg.channel.send({ embeds: [emb.setDescription("You are not authorized to use this command").setColor(colors.error)] });
+        let status = interaction.options.getString('status');
+
+        if (interaction.user.id !== interaction.client.ownerID) {
+            return interaction.reply({ embeds: [emb.setDescription("You are not authorized to use this command").setColor(colors.error)], ephemeral: true });
         }
 
-        msg.client.user.setActivity(args.join(' '), { type: 'PLAYING' });
+        interaction.client.user.setActivity(status, { type: 'PLAYING' });
 
-        return msg.channel.send({ embeds: [emb.setDescription("**Changed status to:** \n " + args.join(' ')).setColor(colors.success)] });
+        return interaction.reply({ embeds: [emb.setDescription("**Changed status to:** \n " + status).setColor(colors.success)] });
     }
 };
