@@ -1,6 +1,6 @@
 const { Message, Guild } = require('discord.js');
 const ms = require('parse-ms');
-const { rawEmb } = require('../index')
+const { rawEmb } = require('../index');
 
 module.exports = {
     name: 'bump',
@@ -10,39 +10,39 @@ module.exports = {
     commands: ['bump'],
 
     /**
-     *@document
-     * @this
-     * @param {Message} msg 
-     * @param {String[]} args 
+     * @param {Message} msg
+     * @param {String[]} args
      */
     async execute(msg, args) {
         const { colors, emotes } = msg.client;
 
-        let emb = rawEmb()
-        var guild = await msg.client.database.server_cache.getGuild(msg.guild.id)
+        let emb = rawEmb();
+        var guild = await msg.client.database.server_cache.getGuild(msg.guild.id);
 
         if (guild.description == 0) {
-            emb.setDescription("This Server has no description! please set one qwq")
-            return msg.channel.send(emb.setColor(colors.error))
+            emb.setDescription("This Server has no description! please set one qwq");
+            return msg.channel.send({ embeds: [emb.setColor(colors.error)] });
         }
 
-        const gChannel = await msg.guild.channels.cache.get(guild.channel)
-        if (guild.channel == 0 || !gChannel) return msg.channel.send(emb.setDescription('Please set a valid channel before you bump your server :3').setColor(colors.error))
+        const gChannel = await msg.guild.channels.cache.get(guild.channel);
+        if (guild.channel == 0 || !gChannel) {
+            return msg.channel.send({ embeds: [emb.setDescription('Please set a valid channel before you bump your server :3').setColor(colors.error)] });
+        }
 
-        let bumped_time = guild.time
+        let bumped_time = guild.time;
         let now = Date.now();
-        if (bumped_time == 0) bumped_time = now - 8.64e+7
+        if (bumped_time == 0) bumped_time = now - 8.64e+7;
         let cooldown = 7.2e+6;
-        let time = ms(cooldown - (now - bumped_time))
+        let time = ms(cooldown - (now - bumped_time));
 
         if (guild.channel == 0) {
-            guild.channel = msg.channel.id
-            await guild.save()
+            guild.channel = msg.channel.id;
+            await guild.save();
         } else {
-            let F = msg.client.channels.resolve(guild.channel)
+            let F = msg.client.channels.resolve(guild.channel);
             if (!F) {
-                guild.channel = msg.channel.id
-                await guild.save()
+                guild.channel = msg.channel.id;
+                await guild.save();
             }
         }
 
@@ -50,10 +50,12 @@ module.exports = {
         try {
             invite = await msg.channel.createInvite({
                 maxAge: 86400
-            }, `Bump Invite`)
-        } catch { return msg.channel.send(emb.setDescription("**Can´t create my invite link qwq**").setColor(colors.error)) }
+            }, `Bump Invite`);
+        } catch {
+            return msg.channel.send({ embeds: [emb.setDescription("**Can't create my invite link qwq**").setColor(colors.error)] });
+        }
 
-        let segments = []
+        let segments = [];
         if (time.hours > 0) segments.push(time.hours + ' Hour' + ((time.hours == 1) ? '' : 's'));
         if (time.minutes > 0) segments.push(time.minutes + ' Minute' + ((time.minutes == 1) ? '' : 's'));
 
@@ -62,47 +64,47 @@ module.exports = {
         if (cooldown - (now - bumped_time) > 0) {
             emb.setColor(colors.error)
                 .setDescription(`**${timeString}**`)
-                .setTitle("You have to wait ;-;")
-            return msg.channel.send(emb)
+                .setTitle("You have to wait ;-;");
+            return msg.channel.send({ embeds: [emb] });
         } else {
             guild.time = now;
-            await guild.save()
-            const count = await bump(msg.guild.id, msg.guild.name, msg, msg.author.username, msg.client.emotes, msg.client.colors)
-            emb.setDescription(`**Bumped succesfully to ${count} Server**`)
-                .setColor(colors.success)
-            msg.channel.send(emb)
-            console.log(msg.guild.name + "   >>>  bumped!")
-            var channel = await msg.client.guilds.cache.get(msg.client.supportGuildId).channels.cache.get(msg.client.supportGuildLogChannelId)
-            channel.send(emb.setDescription(msg.author.tag + ' bumped ' + msg.guild.name))
+            await guild.save();
+            const count = await bump(msg.guild.id, msg.guild.name, msg, msg.author.username, msg.client.emotes, msg.client.colors);
+            emb.setDescription(`**Bumped successfully to ${count} Server**`)
+                .setColor(colors.success);
+            msg.channel.send({ embeds: [emb] });
+            console.log(msg.guild.name + "   >>>  bumped!");
+            var channel = await msg.client.guilds.cache.get(msg.client.supportGuildId).channels.cache.get(msg.client.supportGuildLogChannelId);
+            channel.send({ embeds: [emb.setDescription(msg.author.tag + ' bumped ' + msg.guild.name)] });
         }
     }
 };
 
 async function bump(id, title, msg, user, emotes, colors) {
-    var G = await msg.client.database.server_cache.getGuild(id)
-    let invite = await msg.channel.createInvite({})
-    let emb = rawEmb()
+    var G = await msg.client.database.server_cache.getGuild(id);
+    let invite = await msg.channel.createInvite({});
+    let emb = rawEmb();
 
     emb.setTitle(title)
-        .setDescription(` \n **Description:**\n ${G.description} 
-        \n **Invite: [klick](${"https://discord.gg/" + invite.code})** 
-        \n :globe_with_meridians: ${msg.guild.region}
+        .setDescription(` \n **Description:**\n ${G.description}
+        \n **Invite: [click](${"https://discord.gg/" + invite.code})**
+        \n :globe_with_meridians: ${msg.guild.preferredLocale}
         \n ${emotes.user} ${msg.guild.memberCount}
         `)
         .setColor(G.color != 0 ? G.color : colors.info)
-        .setAuthor(user + " bumped: ", msg.guild.iconURL ? msg.guild.iconURL : user.avatarURL)
-        .setTimestamp()
+        .setAuthor({ name: user + " bumped: ", iconURL: msg.guild.iconURL() || user.displayAvatarURL() })
+        .setTimestamp();
 
     let ch = 0;
-    let channels = await msg.client.database.server_cache.getChannel()
-    var i = 0
+    let channels = await msg.client.database.server_cache.getChannel();
+    var i = 0;
 
-    for (c of channels) {
-        if (c == 0) return
-        ch = await msg.client.channels.resolve(c)
-        if (!c) return
-        i++
-        ch.send(emb).catch(() => { })
+    for (const c of channels) {
+        if (c == 0) return;
+        ch = await msg.client.channels.resolve(c);
+        if (!ch) return;
+        i++;
+        ch.send({ embeds: [emb] }).catch(() => { });
     }
-    return i - 1
+    return i - 1;
 }
