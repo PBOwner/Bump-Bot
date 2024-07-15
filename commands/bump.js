@@ -161,7 +161,7 @@ module.exports = {
                         const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
                         const reportEmbed = new EmbedBuilder()
                             .setTitle('Reported Server')
-                            .setDescription(`Server: ${interaction.guild.name}\nReported by: ${i.user.tag}`)
+                            .setDescription(`Server: ${interaction.guild.name}\nReported by: ${i.user.tag}\n\n**Server Description:**\n${G.description}`)
                             .setColor(config.colors.error)
                             .setTimestamp();
 
