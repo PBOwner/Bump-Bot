@@ -1,5 +1,5 @@
 const { Message } = require('discord.js');
-const { rawEmb } = require('../index')
+const { rawEmb } = require('../index');
 
 module.exports = {
     name: 'prefix',
@@ -10,19 +10,17 @@ module.exports = {
     commands: ['prefix', 'setprefix'],
 
     /**
-     *@document
-     * @this
-     * @param {Message} msg 
-     * @param {String[]} args 
+     * @param {Message} msg
+     * @param {String[]} args
      */
     async execute(msg, args) {
         const { colors, emotes } = msg.client;
-        let emb = rawEmb(msg)
+        let emb = rawEmb();
 
-        let guild = await msg.client.database.server_cache.getGuild(msg.guild.id)
+        let guild = await msg.client.database.server_cache.getGuild(msg.guild.id);
         guild.prefix = args[0];
-        await guild.save()
+        await guild.save();
 
-        return msg.channel.send(emb.setDescription(`**Changed server prefix succesfully to:** \` ${args[0]}\``).setColor(colors.success))
+        return msg.channel.send({ embeds: [emb.setDescription(`**Changed server prefix successfully to:** \` ${args[0]}\``).setColor(colors.success)] });
     }
 };
