@@ -196,9 +196,11 @@ client.on('interactionCreate', async interaction => {
         }
     } else if (interaction.isButton()) {
         if (interaction.customId === 'report') {
-            const reportChannelId = config.reportChannelId; // Add this to your config
-            const reportChannel = await interaction.client.channels.fetch(reportChannelId);
             const embed = interaction.message.embeds[0];
+            const reportEmbed = new EmbedBuilder(embed)
+                .setTitle('Reported Server')
+                .setColor(config.colors.error)
+                .addFields({ name: 'Reported by', value: interaction.user.tag });
 
             const row = new ActionRowBuilder()
                 .addComponents(
@@ -212,8 +214,8 @@ client.on('interactionCreate', async interaction => {
                         .setStyle(ButtonStyle.Danger)
                 );
 
-            reportChannel.send({ embeds: [embed], components: [row] });
-            await interaction.reply({ content: 'Ad reported successfully.', ephemeral: true });
+            await interaction.update({ embeds: [reportEmbed], components: [row] });
+            await interaction.followUp({ content: 'Ad reported successfully.', ephemeral: true });
         } else if (interaction.customId === 'approve' || interaction.customId === 'deny') {
             if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
                 return interaction.reply({ content: 'You do not have permission to approve or deny reports.', ephemeral: true });
