@@ -17,6 +17,7 @@ const supportGuildId = '';
 const supportGuildLogChannelId = '';
 const Bottoken = ''; // Specify your bot token
 const ownerID = ''; // Insert your user ID if you want to use the status command
+const reportChannelId = ''; // Add the report channel ID
 
 module.exports = {
     colors,
@@ -24,5 +25,6 @@ module.exports = {
     supportGuildId,
     supportGuildLogChannelId,
     Bottoken,
-    ownerID
+    ownerID,
+    reportChannelId
 };
