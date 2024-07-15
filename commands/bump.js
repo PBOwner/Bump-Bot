@@ -67,7 +67,7 @@ module.exports = {
             guild.time = now;
             await guild.save();
             const count = await bump(interaction.guild.id, interaction.guild.name, interaction, interaction.user, interaction.client.emotes, interaction.client.colors); // Pass the user object
-            emb.setDescription(`**Bumped successfully to ${count} Server**`)
+            emb.setDescription(`**Bumped successfully to ${count} Server${count === 1 ? '' : 's'}**`)
                 .setColor(colors.success);
             interaction.reply({ embeds: [emb] });
             console.log(interaction.guild.name + "   >>>  bumped!");
@@ -148,5 +148,5 @@ async function bump(id, title, interaction, user, emotes, colors) {
         i++;
         ch.send({ embeds: [emb], components: [row] }).catch(() => { });
     }
-    return i - 1;
+    return i;
 }
