@@ -1,34 +1,31 @@
-const { Message } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { rawEmb } = require('../index');
 
 module.exports = {
-    name: 'description',
-    syntax: 'description <text>',
-    args: true,
-    description: 'Change your server description',
-    perm: 'ADMINISTRATOR',
-    commands: ['description', 'setdescription'],
+    data: new SlashCommandBuilder()
+        .setName('description')
+        .setDescription('Change your server description')
+        .addStringOption(option =>
+            option.setName('text')
+                .setDescription('The description text to set')
+                .setRequired(true)),
 
-    /**
-     * @param {Message} msg
-     * @param {String[]} args
-     */
-    async execute(msg, args) {
-        const { colors, emotes } = msg.client;
+    async execute(interaction) {
+        const { colors } = interaction.client;
         let emb = rawEmb();
-        let text = args.join(" ");
+        let text = interaction.options.getString('text');
 
         if (text.length > 4000) {
             emb.setDescription("**Sorry, but you can only use 4000 Characters for your description!**");
-            return msg.channel.send({ embeds: [emb.setColor(colors.error)] });
+            return interaction.reply({ embeds: [emb.setColor(colors.error)], ephemeral: true });
         }
 
-        let guild = await msg.client.database.server_cache.getGuild(msg.guild.id);
+        let guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
         guild.description = text;
         await guild.save();
 
         emb.setFooter({ text: "Use #preview to see your text" });
 
-        return msg.channel.send({ embeds: [emb.setDescription("**Changed description successfully to:** \n" + text).setColor(colors.success)] });
+        return interaction.reply({ embeds: [emb.setDescription("**Changed description successfully to:** \n" + text).setColor(colors.success)] });
     }
 };
