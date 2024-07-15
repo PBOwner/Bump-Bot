@@ -78,7 +78,7 @@ for (const file of commandFiles) {
             continue;
         }
         client.commands.set(command.data.name, command);
-        commands.push(command.data.toJSON());
+        commands.push(command.data);
     } catch (error) {
         console.error(`Error loading command at './commands/${file}':`, error);
     }
@@ -114,43 +114,8 @@ const start = async () => {
     }
 };
 
-// Function to check for updates
-const checkForUpdates = async () => {
-    try {
-        const fetch = (await import('node-fetch')).default;
-        const response = await fetch('https://api.github.com/repos/PBOwner/Bump-Bot/commits/main');
-        const data = await response.json();
-        const latestCommit = data[0].sha; // Get the latest commit SHA
-
-        const currentCommit = fs.existsSync('current_commit.txt') ? fs.readFileSync('current_commit.txt', 'utf8') : '';
-
-        if (latestCommit !== currentCommit) {
-            console.log('New update detected. Restarting bot...');
-            fs.writeFileSync('current_commit.txt', latestCommit);
-
-            // Use pm2 to restart the bot
-            exec('pm2 restart bump-bot', (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Error restarting bot: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    console.error(`stderr: ${stderr}`);
-                    return;
-                }
-                console.log(`stdout: ${stdout}`);
-            });
-        } else {
-            console.log('No updates found.');
-        }
-    } catch (error) {
-        console.error('Error checking for updates:', error);
-    }
-};
-
-// Start the bot and check for updates every 10 minutes
+// Start the bot
 start();
-setInterval(checkForUpdates, 10 * 60 * 1000);
 
 client.once("ready", async () => {
     if (!config.supportGuildId) throw new Error('Please enter your Support-Guild-ID');
