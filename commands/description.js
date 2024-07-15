@@ -26,7 +26,7 @@ module.exports = {
 
         emb.setFooter({ text: "Use #preview to see your text" });
 
-        // Directly use the text as-is for the embed description
+        // Use the text as-is for the embed description to support multi-line automatically
         return interaction.reply({ embeds: [emb.setDescription("**Changed description successfully to:** \n" + text).setColor(colors.success)] });
     }
 };
