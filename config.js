@@ -13,11 +13,12 @@ const emotes = {
     user: ''
 };
 
-const supportGuildId = '';
-const supportGuildLogChannelId = '';
+const supportGuildId = ''; // Your support guild ID
+const supportGuildLogChannelId = ''; // Your support guild log channel ID
 const Bottoken = ''; // Specify your bot token
 const ownerID = ''; // Insert your user ID if you want to use the status command
 const reportChannelId = ''; // Add the report channel ID
+const supportInviteLink = 'https://discord.gg/yourSupportInviteLink'; // Add your fixed support server invite link
 
 module.exports = {
     colors,
@@ -26,5 +27,6 @@ module.exports = {
     supportGuildLogChannelId,
     Bottoken,
     ownerID,
-    reportChannelId
+    reportChannelId,
+    supportInviteLink // Export the support invite link
 };
