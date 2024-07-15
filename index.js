@@ -24,12 +24,14 @@ const emotes = {
     bot: '',
     user: ''
 }
+
 const supportGuildId = ''
 const supportGuildLogChannelId = ''
 // Specify your bot token
 const Bottoken = ''
 // Insert your user ID if you want to use the status command
 const ownerID = ""
+
 const rawEmb = () => {
     return new EmbedBuilder()
         .setColor(colors.info);
