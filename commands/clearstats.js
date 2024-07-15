@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
+const { SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const config = require('../config'); // Import config
 const { Server } = require('../database/dbInit'); // Import Server model
 
@@ -20,11 +20,11 @@ module.exports = {
             // Clear the cache
             interaction.client.database.server_cache.clear();
 
-            const emb = rawEmb()
+            const embed = new EmbedBuilder()
                 .setColor(config.colors.success)
                 .setDescription('Stats and database have been cleared successfully.');
 
-            return interaction.reply({ embeds: [emb] });
+            return interaction.reply({ embeds: [embed] });
         } catch (error) {
             console.error(error);
             return interaction.reply({ content: 'There was an error while clearing the stats and database.', ephemeral: true });
