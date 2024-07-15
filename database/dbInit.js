@@ -1,16 +1,16 @@
 const { Sequelize, DataTypes } = require('sequelize');
 
-const serversql = new Sequelize('server_table', 'user', 'password', {
-    host: 'localhost',
+const serversql = new Sequelize({
     dialect: 'sqlite',
-    logging: false,
     storage: 'server.sqlite',
+    logging: false
 });
 
-const Server = serversql.define('server_table', {
+const Server = serversql.define('Server', {
     key: {
         type: DataTypes.TEXT,
         unique: true,
+        allowNull: false
     },
     prefix: {
         type: DataTypes.TEXT,
@@ -18,28 +18,28 @@ const Server = serversql.define('server_table', {
     },
     description: {
         type: DataTypes.INTEGER,
-        defaultValue: 0,
+        defaultValue: 0
     },
     color: {
         type: DataTypes.TEXT,
-        defaultValue: 0
+        defaultValue: "0"
     },
     time: {
         type: DataTypes.TEXT,
-        defaultValue: 0
+        defaultValue: "0"
     },
     channel: {
         type: DataTypes.TEXT,
-        defaultValue: 0
+        defaultValue: "0"
     },
     wlc: {
         type: DataTypes.TEXT,
+        allowNull: true
     },
     gb: {
         type: DataTypes.TEXT,
+        allowNull: true
     },
-
-
     partner: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
@@ -47,14 +47,15 @@ const Server = serversql.define('server_table', {
     ban: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
-    },
+    }
+}, {
+    tableName: 'server_table'
 });
-
 
 const syncDatabase = async () => {
     try {
         await serversql.sync();
-        console.log(' > 🗸 Server Cache');
+        console.log(' >  Server Cache');
     } catch (e) {
         console.log(e);
         process.exit(1);
