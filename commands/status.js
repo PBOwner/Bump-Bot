@@ -4,13 +4,25 @@ const config = require('../config'); // Import config
 module.exports = {
     data: {
         name: 'status',
-        description: 'Change the bot\'s status',
+        description: 'Manage the bot\'s status and presence',
         options: [
+            {
+                name: 'action',
+                type: 3, // STRING
+                description: 'Action to perform (add, remove, start, stop)',
+                required: true,
+                choices: [
+                    { name: 'Add', value: 'add' },
+                    { name: 'Remove', value: 'remove' },
+                    { name: 'Start', value: 'start' },
+                    { name: 'Stop', value: 'stop' }
+                ]
+            },
             {
                 name: 'type',
                 type: 3, // STRING
-                description: 'The type of status',
-                required: true,
+                description: 'The type of status (Playing, Streaming, Listening, Watching)',
+                required: false,
                 choices: [
                     { name: 'Playing', value: 'PLAYING' },
                     { name: 'Streaming', value: 'STREAMING' },
@@ -22,13 +34,13 @@ module.exports = {
                 name: 'text',
                 type: 3, // STRING
                 description: 'The status text',
-                required: true
+                required: false
             },
             {
                 name: 'status',
                 type: 3, // STRING
-                description: 'The status (online, idle, dnd, invisible)',
-                required: true,
+                description: 'The presence (online, idle, dnd, invisible)',
+                required: false,
                 choices: [
                     { name: 'Online', value: 'online' },
                     { name: 'Idle', value: 'idle' },
@@ -49,6 +61,7 @@ module.exports = {
     async execute(interaction) {
         const { colors } = interaction.client;
         let emb = new EmbedBuilder();
+        let action = interaction.options.getString('action');
         let type = interaction.options.getString('type');
         let text = interaction.options.getString('text');
         let status = interaction.options.getString('status');
@@ -60,37 +73,70 @@ module.exports = {
             });
         }
 
-        try {
-            // Log the current presence before setting the new one
-            console.log('Current Presence:', interaction.client.user.presence);
+        const statuses = interaction.client.statuses || [];
+        interaction.client.statuses = statuses;
 
-            // Set the new status
-            await interaction.client.user.setPresence({ status: status });
-
-            // Set the new activity
-            await interaction.client.user.setActivity(text, { type: type });
-
-            // Log the new presence after setting it
-            console.log('New Presence:', interaction.client.user.presence);
-
-            // Get the updated presence
-            const currentPresence = interaction.client.user.presence;
-            const currentActivity = currentPresence.activities[0];
-
-            // Create a response embed with the updated presence
-            emb.setDescription(`**Changed status to:**\nType: ${type}\nText: ${text}\nStatus: ${status}`)
-               .setColor(colors.success)
-               .addFields(
-                   { name: 'Current Type', value: currentActivity ? currentActivity.type : 'None', inline: true },
-                   { name: 'Current Text', value: currentActivity ? currentActivity.name : 'None', inline: true },
-                   { name: 'Current Status', value: currentPresence.status, inline: true }
-               );
-
-            return interaction.reply({ embeds: [emb] });
-        } catch (error) {
-            console.error('Error setting presence or activity:', error);
+        if (action === 'add') {
+            if (!type || !text || !status) {
+                return interaction.reply({
+                    embeds: [emb.setDescription("Type, text, and status are required to add a new status").setColor(colors.error)],
+                    ephemeral: true
+                });
+            }
+            statuses.push({ type, text, status });
             return interaction.reply({
-                embeds: [emb.setDescription("Failed to set status").setColor(colors.error)],
+                embeds: [emb.setDescription(`Added new status:\nType: ${type}\nText: ${text}\nStatus: ${status}`).setColor(colors.success)],
+                ephemeral: true
+            });
+        } else if (action === 'remove') {
+            if (!type || !text || !status) {
+                return interaction.reply({
+                    embeds: [emb.setDescription("Type, text, and status are required to remove a status").setColor(colors.error)],
+                    ephemeral: true
+                });
+            }
+            const index = statuses.findIndex(s => s.type === type && s.text === text && s.status === status);
+            if (index === -1) {
+                return interaction.reply({
+                    embeds: [emb.setDescription("Status not found").setColor(colors.error)],
+                    ephemeral: true
+                });
+            }
+            statuses.splice(index, 1);
+            return interaction.reply({
+                embeds: [emb.setDescription(`Removed status:\nType: ${type}\nText: ${text}\nStatus: ${status}`).setColor(colors.success)],
+                ephemeral: true
+            });
+        } else if (action === 'start') {
+            if (interaction.client.statusInterval) {
+                return interaction.reply({
+                    embeds: [emb.setDescription("Status cycling is already running").setColor(colors.error)],
+                    ephemeral: true
+                });
+            }
+            let index = 0;
+            interaction.client.statusInterval = setInterval(() => {
+                if (statuses.length === 0) return;
+                const { type, text, status } = statuses[index];
+                interaction.client.user.setPresence({ status });
+                interaction.client.user.setActivity(text, { type });
+                index = (index + 1) % statuses.length;
+            }, 10000); // Change status every 10 seconds
+            return interaction.reply({
+                embeds: [emb.setDescription("Started status cycling").setColor(colors.success)],
+                ephemeral: true
+            });
+        } else if (action === 'stop') {
+            if (!interaction.client.statusInterval) {
+                return interaction.reply({
+                    embeds: [emb.setDescription("Status cycling is not running").setColor(colors.error)],
+                    ephemeral: true
+                });
+            }
+            clearInterval(interaction.client.statusInterval);
+            interaction.client.statusInterval = null;
+            return interaction.reply({
+                embeds: [emb.setDescription("Stopped status cycling").setColor(colors.success)],
                 ephemeral: true
             });
         }
