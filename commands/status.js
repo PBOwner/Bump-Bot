@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const config = require('../config'); // Import config
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
         options: [
             {
                 name: 'type',
-                type: 'STRING',
+                type: 3, // STRING
                 description: 'The type of status',
                 required: true,
                 choices: [
@@ -20,13 +20,13 @@ module.exports = {
             },
             {
                 name: 'text',
-                type: 'STRING',
+                type: 3, // STRING
                 description: 'The status text',
                 required: true
             },
             {
                 name: 'status',
-                type: 'STRING',
+                type: 3, // STRING
                 description: 'The status (online, idle, dnd, invisible)',
                 required: true,
                 choices: [
