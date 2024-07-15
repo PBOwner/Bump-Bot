@@ -1,7 +1,6 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const ms = require('parse-ms');
-const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
 const config = require('../config'); // Import config
 
 module.exports = {
@@ -15,17 +14,17 @@ module.exports = {
 
             const { colors, emotes } = interaction.client;
 
-            let emb = rawEmb();
+            let embed = new EmbedBuilder();
             var guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
 
             if (!guild.description) {
-                emb.setDescription("This Server has no description! please set one qwq");
-                return interaction.editReply({ embeds: [emb.setColor(colors.error)] });
+                embed.setDescription("This Server has no description! please set one qwq");
+                return interaction.editReply({ embeds: [embed.setColor(colors.error)] });
             }
 
             const gChannel = await interaction.guild.channels.cache.get(guild.channel);
             if (!guild.channel || !gChannel) {
-                return interaction.editReply({ embeds: [emb.setDescription('Please set a valid channel before you bump your server :3').setColor(colors.error)] });
+                return interaction.editReply({ embeds: [embed.setDescription('Please set a valid channel before you bump your server :3').setColor(colors.error)] });
             }
 
             let bumped_time = guild.time;
@@ -51,7 +50,7 @@ module.exports = {
                     maxAge: 86400
                 }, `Bump Invite`);
             } catch {
-                return interaction.editReply({ embeds: [emb.setDescription("**Can't create my invite link qwq**").setColor(colors.error)] });
+                return interaction.editReply({ embeds: [embed.setDescription("**Can't create my invite link qwq**").setColor(colors.error)] });
             }
 
             let segments = [];
@@ -62,25 +61,25 @@ module.exports = {
 
             // Check if the user is the owner
             if (interaction.user.id !== config.ownerID && cooldown - (now - bumped_time) > 0) {
-                emb.setColor(colors.error)
+                embed.setColor(colors.error)
                     .setDescription(`**${timeString}**`)
                     .setTitle("You have to wait ;-;");
-                return interaction.editReply({ embeds: [emb] });
+                return interaction.editReply({ embeds: [embed] });
             } else {
                 guild.time = now;
                 guild.lastBumper = interaction.user.id; // Store the user ID of the last person who bumped
                 await guild.save();
                 const count = await module.exports.bump(interaction.guild.id, interaction.guild.name, interaction, interaction.user, interaction.client.emotes, interaction.client.colors); // Pass the user object
-                emb.setDescription(`**Bumped successfully to ${count} Server${count === 1 ? '' : 's'}**`)
+                embed.setDescription(`**Bumped successfully to ${count} Server${count === 1 ? '' : 's'}**`)
                     .setColor(colors.success);
-                await interaction.editReply({ embeds: [emb] });
+                await interaction.editReply({ embeds: [embed] });
                 console.log(interaction.guild.name + "   >>>  bumped!");
                 var channel = await interaction.client.guilds.cache.get(interaction.client.supportGuildId).channels.cache.get(interaction.client.supportGuildLogChannelId);
-                channel.send({ embeds: [emb.setDescription(interaction.user.tag + ' bumped ' + interaction.guild.name)] });
+                channel.send({ embeds: [embed.setDescription(interaction.user.tag + ' bumped ' + interaction.guild.name)] });
 
                 // Schedule a reminder to ping the user after 2 hours
                 setTimeout(async () => {
-                    const reminderEmbed = rawEmb()
+                    const reminderEmbed = new EmbedBuilder()
                         .setColor(colors.info)
                         .setTitle("Bump Reminder")
                         .addFields(
@@ -112,9 +111,9 @@ module.exports = {
     bump: async function bump(id, title, interaction, user, emotes, colors) {
         var G = await interaction.client.database.server_cache.getGuild(id);
         let invite = await interaction.channel.createInvite({});
-        let emb = rawEmb();
+        let embed = new EmbedBuilder();
 
-        emb.setTitle(interaction.guild.name) // Set the title to the server's name
+        embed.setTitle(interaction.guild.name) // Set the title to the server's name
             .setDescription(` \n **Description:**\n ${G.description}
             \n :globe_with_meridians: ${interaction.guild.preferredLocale}
             \n ${emotes.user} ${interaction.guild.memberCount}
@@ -147,7 +146,7 @@ module.exports = {
             const ch = await interaction.client.channels.resolve(c);
             if (!ch) continue;
             i++;
-            ch.send({ embeds: [emb], components: [row] }).then(message => {
+            ch.send({ embeds: [embed], components: [row] }).then(message => {
                 const filter = i => i.customId === 'report';
                 const collector = message.createMessageComponentCollector({ filter, time: 60000 });
 
