@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { rawEmb } = require('../index');
+const { SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const config = require('../config'); // Import config
 
 module.exports = {
@@ -13,18 +13,18 @@ module.exports = {
 
     async execute(interaction) {
         const { colors } = interaction.client;
-        let emb = rawEmb();
+        let embed = new EmbedBuilder();
         let channel = interaction.options.getChannel('channel');
 
         if (!channel) {
-            emb.setDescription("**You have to mention a channel**");
-            return interaction.reply({ embeds: [emb.setColor(colors.error)], ephemeral: true });
+            embed.setDescription("**You have to mention a channel**");
+            return interaction.reply({ embeds: [embed.setColor(colors.error)], ephemeral: true });
         }
 
         let guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
         guild.wlc = channel.id;
         await guild.save();
 
-        return interaction.reply({ embeds: [emb.setDescription("**Changed welcome Channel successfully to:** \n <#" + channel.id + ">").setColor(colors.success)] });
+        return interaction.reply({ embeds: [embed.setDescription("**Changed welcome Channel successfully to:** \n <#" + channel.id + ">").setColor(colors.success)] });
     }
 };
