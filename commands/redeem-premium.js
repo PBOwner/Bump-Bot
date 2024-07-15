@@ -26,7 +26,7 @@ module.exports = {
         guild.premium = true;
         await guild.save();
 
-        premiumCodes.set(code, { redeemed: true, guildId: interaction.guild.id });
+        premiumCodes.set(code, { ...premiumData, redeemed: true, guildId: interaction.guild.id });
 
         const embed = new EmbedBuilder()
             .setColor(config.colors.success)
