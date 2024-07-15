@@ -1,30 +1,24 @@
-const { Message } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { rawEmb } = require('../index');
 
 module.exports = {
-    name: 'preview',
-    syntax: 'preview',
-    args: false,
-    description: 'Shows your server bump embed',
-    commands: ['preview'],
+    data: new SlashCommandBuilder()
+        .setName('preview')
+        .setDescription('Shows your server bump embed'),
 
-    /**
-     * @param {Message} msg
-     * @param {String[]} args
-     */
-    async execute(msg, args) {
-        const { colors, emotes } = msg.client;
-        let guildData = await msg.client.database.server_cache.getGuild(msg.guild.id);
+    async execute(interaction) {
+        const { colors, emotes } = interaction.client;
+        let guildData = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
         let des = guildData.description != 0 ? guildData.description : "None";
 
         let emb = rawEmb()
-            .setTitle(`Preview [${msg.guild.name}]`)
+            .setTitle(`Preview [${interaction.guild.name}]`)
             .setColor(guildData.color != 0 ? guildData.color : colors.info)
             .setDescription(`\n **Description:**\n ${des}
             \n **Invite: [click]**
-            \n :globe_with_meridians: ${msg.guild.preferredLocale}
-            \n ${emotes.user} ${msg.guild.memberCount}
+            \n :globe_with_meridians: ${interaction.guild.preferredLocale}
+            \n ${emotes.user} ${interaction.guild.memberCount}
             `);
-        return msg.channel.send({ embeds: [emb] });
+        return interaction.reply({ embeds: [emb] });
     }
 };
