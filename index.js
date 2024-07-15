@@ -182,7 +182,6 @@ client.on('guildMemberRemove', async member => {
     ch.send({ embeds: [emb] }).catch(() => { });
 });
 
-// Event: interactionCreate
 client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
@@ -201,7 +200,7 @@ client.on('interactionCreate', async interaction => {
         try {
             if (interaction.customId === 'report') {
                 if (!interaction.deferred && !interaction.replied) {
-                    await interaction.deferUpdate();
+                    await interaction.deferReply({ ephemeral: true });
                 }
 
                 const embed = interaction.message.embeds[0];
@@ -242,10 +241,15 @@ client.on('interactionCreate', async interaction => {
                 }
 
                 const embed = interaction.message.embeds[0];
-                if (!embed || !embed.author || !embed.author.name) {
+                if (!embed || !embed.author) {
                     return interaction.reply({ content: 'Invalid embed data.', ephemeral: true });
                 }
-                const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
+
+                const guildId = embed.footer && embed.footer.text.split(' ')[2]; // Assuming the footer contains the guild ID
+                if (!guildId) {
+                    return interaction.reply({ content: 'Guild ID not found in embed data.', ephemeral: true });
+                }
+
                 const guild = await interaction.client.database.server_cache.getGuild(guildId);
 
                 if (interaction.customId === 'approve') {
@@ -270,10 +274,15 @@ client.on('interactionCreate', async interaction => {
                 }
 
                 const embed = interaction.message.embeds[0];
-                if (!embed || !embed.author || !embed.author.name) {
+                if (!embed || !embed.author) {
                     return interaction.reply({ content: 'Invalid embed data.', ephemeral: true });
                 }
-                const guildId = embed.author.name.split(' ')[0]; // Assuming the author field contains the guild ID
+
+                const guildId = embed.footer && embed.footer.text.split(' ')[2]; // Assuming the footer contains the guild ID
+                if (!guildId) {
+                    return interaction.reply({ content: 'Guild ID not found in embed data.', ephemeral: true });
+                }
+
                 const guild = await interaction.client.database.server_cache.getGuild(guildId);
                 guild.blocked = false;
                 await guild.save();
