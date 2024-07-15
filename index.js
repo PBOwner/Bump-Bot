@@ -253,7 +253,6 @@ client.on('interactionCreate', async interaction => {
                 );
 
             await interaction.update({ embeds: [reportEmbed], components: [row] });
-            await interaction.followUp({ content: 'Ad reported successfully.', ephemeral: true });
         } else if (interaction.customId === 'approve' || interaction.customId === 'deny') {
             if (!interaction.member.roles.cache.has(config.reportApprovalRoleId)) {
                 return interaction.reply({ content: 'You do not have permission to approve or deny reports.', ephemeral: true });
@@ -278,7 +277,7 @@ client.on('interactionCreate', async interaction => {
                             .setStyle(ButtonStyle.Secondary)
                     );
 
-                await interaction.update({ content: 'Server approved. You can unblock it if needed.', components: [row] });
+                await interaction.update({ content: 'Server approved and blocked. You can unblock it if needed.', components: [row] });
             } else if (interaction.customId === 'deny') {
                 await interaction.update({ content: 'Report dismissed.', components: [] });
             }
