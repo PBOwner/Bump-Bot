@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { MessageActionRow, MessageButton } = require('discord.js');
 const ms = require('parse-ms');
 const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
 const config = require('../config'); // Import config
@@ -76,7 +76,7 @@ module.exports = {
 
             // Schedule a reminder to ping the user after 2 hours
             setTimeout(() => {
-                const reminderEmbed = new MessageEmbed()
+                const reminderEmbed = rawEmb()
                     .setColor(colors.info)
                     .setDescription("It's time to bump again!")
                     .setTitle("Bump Reminder");
@@ -96,13 +96,28 @@ async function bump(id, title, interaction, user, emotes, colors) {
 
     emb.setTitle(title)
         .setDescription(` \n **Description:**\n ${G.description}
-        \n **Invite: [click](${"https://discord.gg/" + invite.code})**
         \n :globe_with_meridians: ${interaction.guild.preferredLocale}
         \n ${emotes.user} ${interaction.guild.memberCount}
         `)
         .setColor(G.color != 0 ? G.color : colors.info)
         .setAuthor({ name: user.username + " bumped: ", iconURL: interaction.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
         .setTimestamp();
+
+    const row = new MessageActionRow()
+        .addComponents(
+            new MessageButton()
+                .setLabel('Join Server')
+                .setStyle('LINK')
+                .setURL(`https://discord.gg/${invite.code}`),
+            new MessageButton()
+                .setLabel('Support Server')
+                .setStyle('LINK')
+                .setURL(`https://discord.gg/${config.supportGuildId}`),
+            new MessageButton()
+                .setCustomId('report')
+                .setLabel('Report')
+                .setStyle('DANGER')
+        );
 
     let ch = 0;
     let channels = await interaction.client.database.server_cache.getChannel();
@@ -113,7 +128,7 @@ async function bump(id, title, interaction, user, emotes, colors) {
         ch = await interaction.client.channels.resolve(c);
         if (!ch) return;
         i++;
-        ch.send({ embeds: [emb] }).catch(() => { });
+        ch.send({ embeds: [emb], components: [row] }).catch(() => { });
     }
     return i - 1;
 }
