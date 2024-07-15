@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const ms = require('parse-ms');
 const { rawEmb } = require('../index'); // Adjust the path to import rawEmb if needed
 const config = require('../config'); // Import config
@@ -67,7 +67,7 @@ module.exports = {
             guild.time = now;
             await guild.save();
             const count = await bump(interaction.guild.id, interaction.guild.name, interaction, interaction.user, interaction.client.emotes, interaction.client.colors); // Pass the user object
-            emb.setDescription(`**Bumped successfully to ${count} Servers**`)
+            emb.setDescription(`**Bumped successfully to ${count} Server${count === 1 ? '' : 's'}**`)
                 .setColor(colors.success);
             interaction.reply({ embeds: [emb] });
             console.log(interaction.guild.name + "   >>>  bumped!");
@@ -103,24 +103,6 @@ async function bump(id, title, interaction, user, emotes, colors) {
         .setAuthor({ name: user.username + " bumped: ", iconURL: interaction.guild.iconURL() || user.displayAvatarURL() }) // Use user.username and user.displayAvatarURL()
         .setTimestamp();
 
-    let supportInviteLink;
-    try {
-        // Fetch the support server
-        const supportGuild = await interaction.client.guilds.fetch(config.supportGuildId);
-        // Create an invite for the support server
-        const inviteChannel = supportGuild.channels.cache.find(channel =>
-            channel.isTextBased() && channel.permissionsFor(supportGuild.members.me).has(PermissionsBitField.Flags.CreateInstantInvite)
-        );
-        if (!inviteChannel) {
-            throw new Error('No suitable channel found to create an invite link.');
-        }
-        const supportInvite = await inviteChannel.createInvite({ maxAge: 0, maxUses: 0 });
-        supportInviteLink = `https://discord.gg/${supportInvite.code}`;
-    } catch (error) {
-        console.error('Error creating support server invite:', error);
-        supportInviteLink = "https://discord.gg/KJjZnxZ"; // Fallback invite link
-    }
-
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
@@ -130,23 +112,22 @@ async function bump(id, title, interaction, user, emotes, colors) {
             new ButtonBuilder()
                 .setLabel('Support Server')
                 .setStyle(ButtonStyle.Link)
-                .setURL(supportInviteLink),
+                .setURL(config.supportInviteLink),
             new ButtonBuilder()
                 .setCustomId('report')
                 .setLabel('Report')
                 .setStyle(ButtonStyle.Danger)
         );
 
-    let ch = 0;
     let channels = await interaction.client.database.server_cache.getChannel();
-    var i = 0;
+    let i = 0;
 
     for (const c of channels) {
-        if (c == 0) return;
-        ch = await interaction.client.channels.resolve(c);
-        if (!ch) return;
+        if (c === 0) continue;
+        const ch = await interaction.client.channels.resolve(c);
+        if (!ch) continue;
         i++;
         ch.send({ embeds: [emb], components: [row] }).catch(() => { });
     }
-    return i;
+    return i; // Return the count of successful sends
 }
