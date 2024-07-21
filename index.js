@@ -1,7 +1,7 @@
 const fs = require("fs");
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
+const { Routes } = require('discord-api-types/v10');
 const config = require('./config');
 const { exec } = require('child_process'); // Import child_process
 
@@ -85,7 +85,7 @@ for (const file of commandFiles) {
     }
 }
 
-const rest = new REST({ version: '9' }).setToken(config.Bottoken);
+const rest = new REST({ version: '10' }).setToken(config.Bottoken);
 
 //==================================================================================================================================================
 // Starting the Bot
@@ -147,6 +147,7 @@ client.on('guildMemberAdd', async member => {
         settings.wlc = undefined;
         return settings.save();
     }
+    console.log('Color for info:', config.colors.info); // Debugging statement
     let emb = new EmbedBuilder()
         .setColor(config.colors.info)
         .setTitle('Member Joined')
@@ -159,6 +160,7 @@ client.on('guildCreate', async guild => {
     let supGuild = await client.guilds.resolve(config.supportGuildId);
     let channel = await supGuild.channels.resolve(config.supportGuildLogChannelId);
     let owner = await guild.fetchOwner();
+    console.log('Color for success:', config.colors.success); // Debugging statement
     let emb = new EmbedBuilder()
         .setColor(config.colors.success)
         .setTitle('Server joined')
@@ -176,6 +178,7 @@ client.on('guildMemberRemove', async member => {
         settings.gb = undefined;
         return settings.save();
     }
+    console.log('Color for info:', config.colors.info); // Debugging statement
     let emb = new EmbedBuilder()
         .setColor(config.colors.info)
         .setTitle('Member Leaved')
