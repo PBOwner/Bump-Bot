@@ -48,6 +48,11 @@ Reflect.defineProperty(server_cache, "getChannel", {
         return arr;
     }
 });
+Reflect.defineProperty(server_cache, "getAllGuilds", {
+    value: async function () {
+        return await Server.findAll();
+    }
+});
 
 const initDatabase = async () => {
     await syncDatabase();
