@@ -243,15 +243,22 @@ client.on('interactionCreate', async interaction => {
         }
     } else if (interaction.isButton()) {
         const [action, guildId] = interaction.customId.split('_');
+        const message = interaction.message;
+        const buttons = message.components[0].components;
+
+        // Disable both buttons
+        buttons.forEach(button => button.setDisabled(true));
+        const row = new ActionRowBuilder().addComponents(buttons);
+
         if (action === 'approve') {
             // Handle approve action
             const settings = await client.database.server_cache.getGuild(guildId);
             settings.blocked = true;
             await settings.save();
-            await interaction.reply({ content: 'The server has been blocked from being bumped.', ephemeral: true });
+            await interaction.update({ content: 'The server has been blocked from being bumped.', components: [row], embeds: message.embeds });
         } else if (action === 'deny') {
             // Handle deny action
-            await interaction.reply({ content: 'The report has been dismissed.', ephemeral: true });
+            await interaction.update({ content: 'The report has been dismissed.', components: [row], embeds: message.embeds });
         }
     }
 });
