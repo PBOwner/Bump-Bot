@@ -20,6 +20,7 @@ client.colors = config.colors;
 client.emotes = config.emotes;
 client.supportGuildId = config.supportGuildId;
 client.supportGuildLogChannelId = config.supportGuildLogChannelId;
+client.reportChannelId = config.reportChannelId; // Add report channel ID to the client
 
 if (!config.Bottoken) throw new Error('Please enter a Bot Token!');
 
@@ -195,6 +196,20 @@ client.on('interactionCreate', async interaction => {
             } else {
                 await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
             }
+        }
+    } else if (interaction.isButton()) {
+        if (interaction.customId.startsWith('report_')) {
+            const bumpId = interaction.customId.split('_')[1];
+            const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
+
+            const reportEmbed = new EmbedBuilder()
+                .setColor(config.colors.warning)
+                .setTitle('Bump Report')
+                .setDescription(`A bump with ID ${bumpId} has been reported by ${interaction.user.tag}.`)
+                .setTimestamp();
+
+            reportChannel.send({ embeds: [reportEmbed] });
+            await interaction.reply({ content: 'Thank you for your report. It has been sent to the moderators.', ephemeral: true });
         }
     }
 });
