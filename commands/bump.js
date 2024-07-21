@@ -169,45 +169,4 @@ module.exports = {
         }
         return i; // Return the count of successful sends
     }
-};
-
-// Handle interaction for the report button
-client.on('interactionCreate', async interaction => {
-    if (interaction.isCommand()) {
-        const command = client.commands.get(interaction.commandName);
-        if (!command) return;
-        try {
-            await command.execute(interaction);
-        } catch (error) {
-            console.error(error);
-            if (interaction.deferred || interaction.replied) {
-                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-            } else {
-                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-            }
-        }
-    } else if (interaction.isButton()) {
-        if (interaction.customId.startsWith('report_')) {
-            const bumpId = interaction.customId.split('_')[1];
-            const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
-
-            const reportEmbed = new EmbedBuilder()
-                .setColor(config.colors.warning)
-                .setTitle('Bump Report')
-                .setDescription(`A bump with ID ${bumpId} has been reported by ${interaction.user.tag}.`)
-                .setTimestamp();
-
-            reportChannel.send({ embeds: [reportEmbed] });
-            await interaction.reply({ content: 'Thank you for your report. It has been sent to the moderators.', ephemeral: true });
-        }
-    }
-});
-
-// Handle uncaught exceptions and rejections
-process.on('unhandledRejection', error => {
-    console.error('Unhandled promise rejection:', error);
-});
-
-process.on('uncaughtException', error => {
-    console.error('Uncaught exception:', error);
-});
+}
