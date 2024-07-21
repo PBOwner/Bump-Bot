@@ -211,13 +211,18 @@ client.on('interactionCreate', async interaction => {
             const reason = interaction.fields.getTextInputValue('reason');
             const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
 
+            // Fetch server description from memory
+            const settings = await client.database.server_cache.getGuild(guildId);
+            const serverDescription = settings.description || 'No description available';
+
             const reportEmbed = new EmbedBuilder()
                 .setColor(config.colors.warning)
                 .setTitle('Bump Report')
                 .addFields(
                     { name: 'Server ID', value: guildId },
                     { name: 'Reporter', value: interaction.user.tag },
-                    { name: 'Reason', value: reason }
+                    { name: 'Reason', value: reason },
+                    { name: 'Server Description', value: serverDescription } // Include server description
                 )
                 .setTimestamp();
 
