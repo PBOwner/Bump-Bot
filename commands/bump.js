@@ -150,11 +150,7 @@ module.exports = {
                 new ButtonBuilder()
                     .setLabel('Support Server')
                     .setStyle(ButtonStyle.Link)
-                    .setURL(config.supportInviteLink),
-                new ButtonBuilder()
-                    .setCustomId('report')
-                    .setLabel('Report')
-                    .setStyle(ButtonStyle.Danger)
+                    .setURL(config.supportInviteLink)
             );
 
         let channels = await interaction.client.database.server_cache.getChannel();
@@ -165,65 +161,7 @@ module.exports = {
             const ch = await interaction.client.channels.resolve(c);
             if (!ch) continue;
             i++;
-            ch.send({ embeds: [embed], components: [row] }).then(message => {
-                const filter = i => i.customId === 'report';
-                const collector = message.createMessageComponentCollector({ filter, time: 60000 });
-
-                collector.on('collect', async i => {
-                    if (i.customId === 'report') {
-                        try {
-                            await i.deferUpdate();
-                        } catch (error) {
-                            console.error('Failed to defer update:', error);
-                        }
-                        const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
-                        const reportEmbed = new EmbedBuilder()
-                            .setTitle('Reported Server')
-                            .setDescription(`Server: ${interaction.guild.name}\nReported by: ${i.user.tag}\n\n**Server Description:**\n${G.description}`)
-                            .setColor(config.colors.error)
-                            .setFooter({ text: `Guild ID: ${interaction.guild.id}` }) // Add the guild ID to the footer
-                            .setTimestamp();
-
-                        const reportRow = new ActionRowBuilder()
-                            .addComponents(
-                                new ButtonBuilder()
-                                    .setCustomId('approve')
-                                    .setLabel('Approve')
-                                    .setStyle(ButtonStyle.Success),
-                                new ButtonBuilder()
-                                    .setCustomId('deny')
-                                    .setLabel('Deny')
-                                    .setStyle(ButtonStyle.Danger)
-                            );
-
-                        await reportChannel.send({ embeds: [reportEmbed], components: [reportRow] });
-                    }
-                });
-
-                collector.on('end', collected => {
-                    if (collected.size === 0) {
-                        const disabledRow = new ActionRowBuilder()
-                            .addComponents(
-                                new ButtonBuilder()
-                                    .setLabel('Join Server')
-                                    .setStyle(ButtonStyle.Link)
-                                    .setURL(inviteURL)
-                                    .setDisabled(true),
-                                new ButtonBuilder()
-                                    .setLabel('Support Server')
-                                    .setStyle(ButtonStyle.Link)
-                                    .setURL(config.supportInviteLink)
-                                    .setDisabled(true),
-                                new ButtonBuilder()
-                                    .setCustomId('report')
-                                    .setLabel('Report')
-                                    .setStyle(ButtonStyle.Danger)
-                                    .setDisabled(true)
-                            );
-                        message.edit({ components: [disabledRow] }).catch(console.error);
-                    }
-                });
-            }).catch(console.error);
+            ch.send({ embeds: [embed], components: [row] }).catch(console.error);
         }
         return i; // Return the count of successful sends
     }
