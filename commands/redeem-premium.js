@@ -27,6 +27,10 @@ module.exports = {
         guild.premium = true;
         guild.premiumRedeemedAt = Date.now();
         guild.ownerId = interaction.guild.ownerId;
+
+        // Log the guild object before saving
+        console.log('Updating guild with premium status:', guild);
+
         await guild.save();
 
         premiumCodes.set(code, { ...premiumData, redeemed: true, guildId: interaction.guild.id });
