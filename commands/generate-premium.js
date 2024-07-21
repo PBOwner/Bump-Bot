@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { v4: uuidv4 } = require('uuid');
-const config = require('../config'); // Import config
-
-const premiumCodes = new Map(); // In-memory storage for premium codes
+const config = require('../config');
+const { premiumCodes, generateCode } = require('../premiumCodes'); // Import premiumCodes and generateCode
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -24,10 +22,9 @@ module.exports = {
 
         const userId = interaction.options.getString('user-id');
         const time = interaction.options.getInteger('time');
-        const code = uuidv4();
-        const expirationDate = time === -1 ? null : Date.now() + time * 24 * 60 * 60 * 1000;
+        const code = generateCode(userId, time);
 
-        premiumCodes.set(code, { userId, expirationDate, redeemed: false });
+        const expirationDate = premiumCodes.get(code).expirationDate;
 
         const embed = new EmbedBuilder()
             .setColor(config.colors.success)
