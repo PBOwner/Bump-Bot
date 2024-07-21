@@ -25,6 +25,8 @@ module.exports = {
 
         const guild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
         guild.premium = true;
+        guild.premiumRedeemedAt = Date.now();
+        guild.ownerId = interaction.guild.ownerId;
         await guild.save();
 
         premiumCodes.set(code, { ...premiumData, redeemed: true, guildId: interaction.guild.id });
