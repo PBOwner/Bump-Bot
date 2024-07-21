@@ -17,6 +17,9 @@ module.exports = {
                 }
             });
 
+            // Log the premium servers
+            console.log('Premium servers:', premiumServers);
+
             if (premiumServers.length === 0) {
                 return interaction.reply({ content: 'There are no premium servers.', ephemeral: true });
             }
