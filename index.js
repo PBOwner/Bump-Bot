@@ -58,7 +58,7 @@ const initDatabase = async () => {
     await syncDatabase();
     try {
         for (let entr of (await Server.findAll())) {
-            server_cache.set(entr.user_id, entr);
+            server_cache.set(entr.key, entr); // Use `key` instead of `user_id`
         }
         console.log(" >  Cached Database Entries");
     } catch (e) {
