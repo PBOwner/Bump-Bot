@@ -150,11 +150,7 @@ module.exports = {
                 new ButtonBuilder()
                     .setLabel('Support Server')
                     .setStyle(ButtonStyle.Link)
-                    .setURL(config.supportInviteLink),
-                new ButtonBuilder()
-                    .setCustomId(`report_${id}`)
-                    .setLabel('Report')
-                    .setStyle(ButtonStyle.Danger)
+                    .setURL(config.supportInviteLink)
             );
 
         let channels = await interaction.client.database.server_cache.getChannel();
