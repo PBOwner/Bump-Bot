@@ -191,6 +191,11 @@ client.on('interactionCreate', async interaction => {
         const command = client.commands.get(interaction.commandName);
         if (!command) return;
         try {
+            const settings = await client.database.server_cache.getGuild(interaction.guildId);
+            if (settings.blocked) {
+                await interaction.reply({ content: 'This server is banned from using the bot.', ephemeral: true });
+                return;
+            }
             await command.execute(interaction);
         } catch (error) {
             console.error(error);
@@ -235,15 +240,10 @@ client.on('interactionCreate', async interaction => {
         const [action, guildId] = interaction.customId.split('_');
         if (action === 'approve') {
             // Handle approve action
-            const guild = await interaction.client.guilds.fetch(guildId);
-            if (guild) {
-                await guild.leave();
-                // Disallow the server from being bumped again
-                const settings = await client.database.server_cache.getGuild(guildId);
-                settings.blocked = true;
-                await settings.save();
-            }
-            await interaction.reply({ content: 'The server has been removed and blocked from being bumped.', ephemeral: true });
+            const settings = await client.database.server_cache.getGuild(guildId);
+            settings.blocked = true;
+            await settings.save();
+            await interaction.reply({ content: 'The server has been blocked from being bumped.', ephemeral: true });
         } else if (action === 'deny') {
             // Handle deny action
             await interaction.reply({ content: 'The report has been dismissed.', ephemeral: true });
