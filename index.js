@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const config = require('./config');
@@ -197,19 +197,53 @@ client.on('interactionCreate', async interaction => {
                 await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
             }
         }
-    } else if (interaction.isButton()) {
-        if (interaction.customId.startsWith('report_')) {
-            const bumpId = interaction.customId.split('_')[1];
+    } else if (interaction.isModalSubmit()) {
+        if (interaction.customId === 'reportModal') {
+            const guildId = interaction.fields.getTextInputValue('guildId');
+            const reason = interaction.fields.getTextInputValue('reason');
             const reportChannel = await interaction.client.channels.fetch(config.reportChannelId);
 
             const reportEmbed = new EmbedBuilder()
                 .setColor(config.colors.warning)
                 .setTitle('Bump Report')
-                .setDescription(`A bump with ID ${bumpId} has been reported by ${interaction.user.tag}.`)
+                .addFields(
+                    { name: 'Server ID', value: guildId },
+                    { name: 'Reporter', value: interaction.user.tag },
+                    { name: 'Reason', value: reason }
+                )
                 .setTimestamp();
 
-            reportChannel.send({ embeds: [reportEmbed] });
+            const row = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`approve_${guildId}`)
+                        .setLabel('Approve')
+                        .setStyle(ButtonStyle.Success),
+                    new ButtonBuilder()
+                        .setCustomId(`deny_${guildId}`)
+                        .setLabel('Deny')
+                        .setStyle(ButtonStyle.Danger)
+                );
+
+            reportChannel.send({ embeds: [reportEmbed], components: [row] });
             await interaction.reply({ content: 'Thank you for your report. It has been sent to the moderators.', ephemeral: true });
+        }
+    } else if (interaction.isButton()) {
+        const [action, guildId] = interaction.customId.split('_');
+        if (action === 'approve') {
+            // Handle approve action
+            const guild = await interaction.client.guilds.fetch(guildId);
+            if (guild) {
+                await guild.leave();
+                // Disallow the server from being bumped again
+                const settings = await client.database.server_cache.getGuild(guildId);
+                settings.blocked = true;
+                await settings.save();
+            }
+            await interaction.reply({ content: 'The server has been removed and blocked from being bumped.', ephemeral: true });
+        } else if (action === 'deny') {
+            // Handle deny action
+            await interaction.reply({ content: 'The report has been dismissed.', ephemeral: true });
         }
     }
 });
