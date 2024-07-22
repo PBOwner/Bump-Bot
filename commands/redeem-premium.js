@@ -49,6 +49,41 @@ module.exports = {
             .setTitle('Premium Redeemed')
             .setDescription('Your server now has premium features enabled.');
 
-        return interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+
+        // Start auto-bumping if premium is enabled
+        if (savedGuild.premium) {
+            startAutoBump(interaction.client, savedGuild);
+        }
     }
 };
+
+function startAutoBump(client, guild) {
+    if (client.autoBumpIntervals && client.autoBumpIntervals[guild.id]) {
+        clearInterval(client.autoBumpIntervals[guild.id]);
+    }
+
+    client.autoBumpIntervals = client.autoBumpIntervals || {};
+    client.autoBumpIntervals[guild.id] = setInterval(async () => {
+        const gChannel = await client.channels.cache.get(guild.channel);
+        if (!guild.channel || !gChannel) return;
+
+        let invite;
+        try {
+            invite = await gChannel.createInvite({
+                maxAge: 86400
+            }, `Auto Bump Invite`);
+        } catch {
+            console.log("**Can't create my invite link qwq**");
+            return;
+        }
+
+        const count = await bump(guild.id, guild.name, client, guild.ownerId, client.emotes, client.colors); // Pass the user object
+        console.log(guild.name + "   >>>  auto-bumped!");
+        var channel = await client.guilds.cache.get(client.supportGuildId).channels.cache.get(client.supportGuildLogChannelId);
+        let embed = new EmbedBuilder();
+        embed.setDescription(`Auto-bumped ${guild.name}`)
+            .setColor(client.colors.success);
+        channel.send({ embeds: [embed] });
+    }, 7.2e+6); // 2 hours in milliseconds
+}
