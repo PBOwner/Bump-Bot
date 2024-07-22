@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const config = require('../config');
-const { premiumCodes, generateCode } = require('../premiumCodes'); // Import premiumCodes and generateCode
+const { generateCode } = require('../premiumCodes'); // Import generateCode
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -53,13 +53,13 @@ module.exports = {
         }
 
         const code = generateCode(userId, time);
-        const expirationDate = premiumCodes.get(code).expirationDate;
+        const expirationDate = time === -1 ? null : new Date(Date.now() + time * 24 * 60 * 60 * 1000);
 
         // Save the code in the database
         await interaction.client.database.PremiumCode.create({
             code,
             userId,
-            expirationDate: expirationDate ? new Date(expirationDate) : null,
+            expirationDate,
             redeemed: false,
         });
 
