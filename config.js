@@ -5,11 +5,11 @@ const colors = {
 };
 
 const emotes = {
-    false: "❌",
-    true: "✅",
-    owner: "👑",
-    bot: "🤖",
-    user: "👤"
+    false: "",
+    true: "",
+    owner: "",
+    bot: "",
+    user: ""
 };
 
 const supportGuildId = 'YOUR_SUPPORT_GUILD_ID'; // Your support guild ID
@@ -20,6 +20,9 @@ const reportChannelId = 'YOUR_REPORT_CHANNEL_ID'; // Add the report channel ID
 const supportInviteLink = 'https://discord.gg/yourSupportInviteLink'; // Add your fixed support server invite link
 const reportApprovalRoleId = 'YOUR_REPORT_APPROVAL_ROLE_ID'; // Add the role ID that can approve or deny reports
 
+// Add your SQLite database file path here
+const sqlitePath = './database.sqlite'; // Path to your SQLite database file
+
 module.exports = {
     colors,
     emotes,
@@ -29,5 +32,6 @@ module.exports = {
     ownerID,
     reportChannelId,
     supportInviteLink, // Export the support invite link
-    reportApprovalRoleId // Export the report approval role ID
+    reportApprovalRoleId, // Export the report approval role ID
+    sqlitePath // Export the SQLite database file path
 };
