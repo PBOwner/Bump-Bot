@@ -2,8 +2,91 @@ const fs = require("fs");
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
+const { Sequelize, DataTypes } = require('sequelize');
 const config = require('./config');
 const { exec } = require('child_process'); // Import child_process
+
+// Initialize Sequelize
+const sequelize = new Sequelize(config.databaseUrl, {
+    dialect: 'postgres', // or the dialect you are using
+    logging: false, // Disable logging if you prefer
+});
+
+// Define the Server model
+const Server = sequelize.define('Server', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    key: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+    },
+    prefix: {
+        type: DataTypes.STRING,
+        defaultValue: '%',
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    color: {
+        type: DataTypes.STRING,
+        defaultValue: '0',
+    },
+    time: {
+        type: DataTypes.STRING,
+        defaultValue: '0',
+    },
+    channel: {
+        type: DataTypes.STRING,
+        defaultValue: '0',
+    },
+    wlc: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    gb: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    partner: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    ban: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    premium: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    premiumRedeemedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    ownerId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+}, {
+    timestamps: true,
+});
+
+// Sync Database
+const syncDatabase = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('Connection has been established successfully.');
+        await sequelize.sync({ alter: true }); // Use alter or force as necessary
+        console.log('Database synchronized');
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
+    }
+};
 
 const client = new Client({
     intents: [
@@ -27,7 +110,6 @@ if (!config.Bottoken) throw new Error('Please enter a Bot Token!');
 //==================================================================================================================================================
 // Loading Things
 //==================================================================================================================================================
-const { Server, syncDatabase } = require('./database/dbInit');
 var server_cache = new Collection();
 Reflect.defineProperty(server_cache, "getGuild", {
     value: async function (id) {
