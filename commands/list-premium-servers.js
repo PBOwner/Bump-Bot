@@ -31,8 +31,7 @@ module.exports = {
                 .setColor(config.colors.info)
                 .setTitle('Premium Servers')
                 .setDescription(premiumServers.map(guild => {
-                    const owner = interaction.client.users.cache.get(guild.ownerId);
-                    return `**${guild.name}** (ID: ${guild.id})\nOwner: ${owner ? owner.tag : 'Unknown'} (ID: ${guild.ownerId})\nRedeemed At: ${guild.premiumRedeemedAt ? new Date(guild.premiumRedeemedAt).toLocaleString() : 'Unknown'}`;
+                    return `**${guild.name}** (ID: ${guild.key})\nOwner: ${guild.ownerName} (ID: ${guild.ownerId})\nRedeemed At: ${guild.premiumRedeemedAt ? new Date(guild.premiumRedeemedAt).toLocaleString() : 'Unknown'}`;
                 }).join('\n\n'));
 
             return interaction.reply({ embeds: [embed], ephemeral: true });
