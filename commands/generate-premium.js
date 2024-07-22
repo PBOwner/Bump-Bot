@@ -26,6 +26,14 @@ module.exports = {
 
         const expirationDate = premiumCodes.get(code).expirationDate;
 
+        // Save the code in the database
+        await interaction.client.database.PremiumCode.create({
+            code,
+            userId,
+            expirationDate: expirationDate ? new Date(expirationDate) : null,
+            redeemed: false,
+        });
+
         const embed = new EmbedBuilder()
             .setColor(config.colors.success)
             .setTitle('Premium Code Generated')
