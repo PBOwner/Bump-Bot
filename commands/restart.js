@@ -1,11 +1,11 @@
+const { SlashCommandBuilder } = require('discord.js');
 const { ownerID } = require('../config.js');
 const { exec } = require('child_process');
 
 module.exports = {
-    data: {
-        name: 'restart',
-        description: 'Restarts the bot (Owner only)',
-    },
+    data: new SlashCommandBuilder()
+        .setName('restart')
+        .setDescription('Restarts the bot (Owner only)'),
     async execute(interaction) {
         // Check if the interaction user is the bot owner
         if (interaction.user.id !== ownerID) {
