@@ -22,6 +22,15 @@ module.exports = {
                 return interaction.editReply({ embeds: [embed] });
             }
 
+            // Check if the server has premium enabled
+            if (guild.premium) {
+                embed.setColor(colors.success)
+                    .setDescription("Premium is activated for this server.");
+                await interaction.editReply({ embeds: [embed] });
+                startAutoBump(interaction.client, guild);
+                return;
+            }
+
             if (!guild.description) {
                 embed.setDescription("This Server has no description! please set one qwq");
                 return interaction.editReply({ embeds: [embed.setColor(colors.error)] });
@@ -105,7 +114,7 @@ module.exports = {
                         const message = await bumpChannel.send({ content: `<@${guild.lastBumper}>`, embeds: [reminderEmbed], components: [new ActionRowBuilder().addComponents(
                             new ButtonBuilder()
                                 .setCustomId('bump')
-                                .setLabel('Bump Again')
+                                .setLabel('Bump Now')
                                 .setStyle(ButtonStyle.Success)
                         )] });
 
@@ -180,4 +189,58 @@ module.exports = {
         }
         return i; // Return the count of successful sends
     }
+};
+
+function startAutoBump(client, guild) {
+    if (client.autoBumpIntervals && client.autoBumpIntervals[guild.id]) {
+        clearInterval(client.autoBumpIntervals[guild.id]);
+    }
+
+    client.autoBumpIntervals = client.autoBumpIntervals || {};
+    client.autoBumpIntervals[guild.id] = setInterval(async () => {
+        const gChannel = await client.channels.cache.get(guild.channel);
+        if (!guild.channel || !gChannel) return;
+
+        let invite;
+        try {
+            invite = await gChannel.createInvite({
+                maxAge: 86400
+            }, `Auto Bump Invite`);
+        } catch {
+            console.log("**Can't create my invite link qwq**");
+            return;
+        }
+
+        const count = await module.exports.bump(guild.id, guild.name, client, guild.ownerId, client.emotes, client.colors); // Pass the user object
+        console.log(guild.name + "   >>>  auto-bumped!");
+        var channel = await client.guilds.cache.get(client.supportGuildId).channels.cache.get(client.supportGuildLogChannelId);
+        let embed = new EmbedBuilder();
+        embed.setDescription(`Auto-bumped ${guild.name}`)
+            .setColor(client.colors.success);
+        channel.send({ embeds: [embed] });
+
+        // Schedule a reminder to ping the user after 2 hours
+        setTimeout(async () => {
+            const reminderEmbed = new EmbedBuilder()
+                .setColor(client.colors.info)
+                .setTitle("Bump Reminder")
+                .addFields(
+                    { name: "<:dot:1262419415400714331> Bump Reminder!", value: "Time to bump! Use `/bump` or click the button below!" },
+                    { name: "<:dot:1262419415400714331> Need help?", value: "Join the support server! Use `/invite` and click Support Server!" }
+                );
+
+            try {
+                const bumpChannel = client.channels.cache.get(guild.channel);
+                await bumpChannel.send({ content: `<@${guild.lastBumper}>`, embeds: [reminderEmbed] });
+                await bumpChannel.send({ components: [new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('bump')
+                        .setLabel('Bump Again')
+                        .setStyle(ButtonStyle.Success)
+                )] });
+            } catch (error) {
+                console.log(`Failed to send bump reminder to channel ${guild.channel}`);
+            }
+        }, 7.2e+6); // 2 hours in milliseconds
+    }, 7.2e+6); // 2 hours in milliseconds
 }
