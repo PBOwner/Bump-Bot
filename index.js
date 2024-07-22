@@ -13,7 +13,6 @@ const sequelize = new Sequelize({
     logging: false, // Disable logging if you prefer
 });
 
-// Define the Server model
 const Server = sequelize.define('Server', {
     id: {
         type: DataTypes.INTEGER,
@@ -24,6 +23,14 @@ const Server = sequelize.define('Server', {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+    },
+    name: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    ownerName: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     prefix: {
         type: DataTypes.STRING,
