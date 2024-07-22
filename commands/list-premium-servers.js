@@ -11,6 +11,9 @@ module.exports = {
             const premiumServers = [];
             const guilds = await interaction.client.database.server_cache.getAllGuilds();
 
+            // Log all guilds fetched from the database
+            console.log('All guilds:', guilds);
+
             guilds.forEach(guild => {
                 if (guild.premium) {
                     premiumServers.push(guild);
