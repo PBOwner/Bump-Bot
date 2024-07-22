@@ -198,7 +198,7 @@ for (const file of commandFiles) {
             continue;
         }
         client.commands.set(command.data.name, command);
-        commands.push(command.data);
+        commands.push(command.data.toJSON()); // Ensure toJSON() is used here
     } catch (error) {
         console.error(`Error loading command at './commands/${file}':`, error);
     }
@@ -237,17 +237,27 @@ const start = async () => {
 // Start the bot
 start();
 
+// Add the client.once("ready", async () => { ... }) block here
 client.once("ready", async () => {
     if (!config.supportGuildId) throw new Error('Please enter your Support-Guild-ID');
     if (!config.supportGuildLogChannelId) throw new Error('Please enter your Support-Guild-Log-Channel-ID');
     console.log(" >  Logged in as: " + client.user.tag);
 
-    // Set bot presence
+    const statuses = [
+        { activity: { name: `${client.guilds.cache.size} servers | /help`, type: 'WATCHING' }, status: 'online' },
+        { activity: { name: 'with code', type: 'PLAYING' }, status: 'idle' },
+        { activity: { name: 'your commands', type: 'LISTENING' }, status: 'dnd' }
+    ];
+
+    let currentStatusIndex = 0;
+
     const updatePresence = () => {
+        const { activity, status } = statuses[currentStatusIndex];
         client.user.setPresence({
-            activities: [{ name: `${client.guilds.cache.size} servers | /help`, type: 'WATCHING' }],
-            status: 'online'
+            activities: [activity],
+            status: status
         });
+        currentStatusIndex = (currentStatusIndex + 1) % statuses.length;
     };
 
     updatePresence();
