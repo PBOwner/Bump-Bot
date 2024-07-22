@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -13,7 +13,8 @@ module.exports = {
                     { name: 'Streaming', value: 'STREAMING' },
                     { name: 'Listening', value: 'LISTENING' },
                     { name: 'Watching', value: 'WATCHING' },
-                    { name: 'Competing', value: 'COMPETING' }
+                    { name: 'Competing', value: 'COMPETING' },
+                    { name: 'Custom', value: 'CUSTOM' }
                 ))
         .addStringOption(option =>
             option.setName('activity')
@@ -35,7 +36,7 @@ module.exports = {
             return interaction.reply('You do not have permission to use this command.');
         }
 
-        const type = interaction.options.getString('type');
+        const type = interaction.options.getString('type') || 'CUSTOM';
         let activity = interaction.options.getString('activity');
         const status = interaction.options.getString('status');
 
@@ -44,11 +45,26 @@ module.exports = {
             activity = activity.replace('${server.count}', interaction.client.guilds.cache.size);
         }
 
-        interaction.client.user.setPresence({
-            activities: [{ name: activity, type: type }],
-            status: status
-        });
+        const presenceData = {};
+        if (activity) {
+            presenceData.activities = [{ name: activity, type: type }];
+        }
+        if (status) {
+            presenceData.status = status;
+        }
 
-        await interaction.reply(`Bot status updated to: ${type} ${activity} with status ${status}`);
+        interaction.client.user.setPresence(presenceData);
+
+        const embed = new EmbedBuilder()
+            .setTitle('Bot Status Updated')
+            .setColor('#00FF00')
+            .addFields(
+                { name: 'Type', value: type, inline: true },
+                { name: 'Activity', value: activity || 'Not set', inline: true },
+                { name: 'Status', value: status || 'Not set', inline: true }
+            )
+            .setTimestamp();
+
+        await interaction.reply({ embeds: [embed] });
     },
 };
