@@ -36,8 +36,13 @@ module.exports = {
         }
 
         const type = interaction.options.getString('type');
-        const activity = interaction.options.getString('activity');
+        let activity = interaction.options.getString('activity');
         const status = interaction.options.getString('status');
+
+        // Replace ${server.count} with the actual server count
+        if (activity) {
+            activity = activity.replace('${server.count}', interaction.client.guilds.cache.size);
+        }
 
         interaction.client.user.setPresence({
             activities: [{ name: activity, type: type }],
