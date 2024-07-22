@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -7,24 +7,28 @@ module.exports = {
         .addStringOption(option =>
             option.setName('type')
                 .setDescription('The type of activity')
-                .setRequired(true)
-                .addChoice('Playing', 'PLAYING')
-                .addChoice('Streaming', 'STREAMING')
-                .addChoice('Listening', 'LISTENING')
-                .addChoice('Watching', 'WATCHING')
-                .addChoice('Competing', 'COMPETING'))
+                .setRequired(false)
+                .addChoices(
+                    { name: 'Playing', value: 'PLAYING' },
+                    { name: 'Streaming', value: 'STREAMING' },
+                    { name: 'Listening', value: 'LISTENING' },
+                    { name: 'Watching', value: 'WATCHING' },
+                    { name: 'Competing', value: 'COMPETING' }
+                ))
         .addStringOption(option =>
             option.setName('activity')
                 .setDescription('The activity description')
-                .setRequired(true))
+                .setRequired(false))
         .addStringOption(option =>
             option.setName('status')
                 .setDescription('The online status')
-                .setRequired(true)
-                .addChoice('Online', 'online')
-                .addChoice('Idle', 'idle')
-                .addChoice('Do Not Disturb', 'dnd')
-                .addChoice('Invisible', 'invisible')),
+                .setRequired(false)
+                .addChoices(
+                    { name: 'Online', value: 'online' },
+                    { name: 'Idle', value: 'idle' },
+                    { name: 'Do Not Disturb', value: 'dnd' },
+                    { name: 'Invisible', value: 'invisible' }
+                )),
     async execute(interaction) {
         const { ownerID } = require('../config.js');
         if (interaction.user.id !== ownerID) {
