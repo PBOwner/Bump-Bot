@@ -7,8 +7,8 @@ module.exports = {
         .setName('generate-premium')
         .setDescription('Generate a premium code for a user')
         .addStringOption(option =>
-            option.setName('user-id')
-                .setDescription('The ID of the user to generate the premium code for')
+            option.setName('user')
+                .setDescription('The user (ID, mention, or username) to generate the premium code for')
                 .setRequired(true))
         .addIntegerOption(option =>
             option.setName('time')
@@ -20,10 +20,39 @@ module.exports = {
             return interaction.reply({ content: 'You are not authorized to use this command.', ephemeral: true });
         }
 
-        const userId = interaction.options.getString('user-id');
+        const userInput = interaction.options.getString('user');
         const time = interaction.options.getInteger('time');
-        const code = generateCode(userId, time);
 
+        // Function to resolve user input to a user ID
+        const resolveUserId = async (input) => {
+            // Check if input is a mention
+            const mentionMatch = input.match(/^<@!?(\d+)>$/);
+            if (mentionMatch) {
+                return mentionMatch[1];
+            }
+
+            // Check if input is a user ID
+            if (/^\d+$/.test(input)) {
+                return input;
+            }
+
+            // Check if input is a username
+            const user = await interaction.client.users.cache.find(u => u.tag === input);
+            if (user) {
+                return user.id;
+            }
+
+            // If no match, return null
+            return null;
+        };
+
+        const userId = await resolveUserId(userInput);
+
+        if (!userId) {
+            return interaction.reply({ content: 'Invalid user. Please provide a valid user ID, mention, or username.', ephemeral: true });
+        }
+
+        const code = generateCode(userId, time);
         const expirationDate = premiumCodes.get(code).expirationDate;
 
         // Save the code in the database
