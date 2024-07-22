@@ -37,6 +37,9 @@ module.exports = {
         const savedGuild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
         console.log('Saved guild:', savedGuild);
 
+        // Update the cache
+        interaction.client.database.server_cache.set(guild.key, savedGuild);
+
         premiumCodes.set(code, { ...premiumData, redeemed: true, guildId: interaction.guild.id });
 
         const embed = new EmbedBuilder()
