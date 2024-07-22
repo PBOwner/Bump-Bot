@@ -27,6 +27,8 @@ module.exports = {
         guild.premium = true;
         guild.premiumRedeemedAt = Date.now();
         guild.ownerId = interaction.guild.ownerId;
+        guild.name = interaction.guild.name;
+        guild.ownerName = interaction.guild.ownerId ? (await interaction.client.users.fetch(interaction.guild.ownerId)).tag : 'Unknown';
 
         // Log the guild object before saving
         console.log('Updating guild with premium status:', guild);
