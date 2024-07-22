@@ -241,7 +241,18 @@ client.once("ready", async () => {
     if (!config.supportGuildId) throw new Error('Please enter your Support-Guild-ID');
     if (!config.supportGuildLogChannelId) throw new Error('Please enter your Support-Guild-Log-Channel-ID');
     console.log(" >  Logged in as: " + client.user.tag);
-    client.user.setPresence({ activities: [{ name: "Bump your server", type: 'PLAYING' }], status: 'idle' });
+
+    // Set bot presence
+    const updatePresence = () => {
+        client.user.setPresence({
+            activities: [{ name: `${client.guilds.cache.size} servers | /help`, type: 'WATCHING' }],
+            status: 'online'
+        });
+    };
+
+    updatePresence();
+    setInterval(updatePresence, 60000); // Update presence every minute
+
     try {
         console.log('Started refreshing application (/) commands.');
 
@@ -254,55 +265,6 @@ client.once("ready", async () => {
     } catch (error) {
         console.error(error);
     }
-});
-
-// Event: guildMemberAdd
-client.on('guildMemberAdd', async member => {
-    let { guild } = member;
-    let settings = await client.database.server_cache.getGuild(guild.id);
-    if (!settings.wlc) return;
-    let ch = await guild.channels.resolve(settings.wlc);
-    if (!ch) {
-        settings.wlc = undefined;
-        return settings.save();
-    }
-    console.log('Color for info:', config.colors.info); // Debugging statement
-    let emb = new EmbedBuilder()
-        .setColor(config.colors.info)
-        .setTitle('Member Joined')
-        .setDescription(`${member} joined **${guild.name}**! Welcome you'r member No. **${guild.memberCount}**`);
-    ch.send({ embeds: [emb] }).catch(() => { });
-});
-
-// Event: guildCreate
-client.on('guildCreate', async guild => {
-    let supGuild = await client.guilds.resolve(config.supportGuildId);
-    let channel = await supGuild.channels.resolve(config.supportGuildLogChannelId);
-    let owner = await guild.fetchOwner();
-    console.log('Color for success:', config.colors.success); // Debugging statement
-    let emb = new EmbedBuilder()
-        .setColor(config.colors.success)
-        .setTitle('Server joined')
-        .setDescription(`**Server Name:** ${guild.name}\n**Server ID:** ${guild.id}\n**Owner Name:** ${owner.user.tag}\n**Owner ID:** ${owner.user.id}`);
-    channel.send({ embeds: [emb] }).catch(() => { });
-});
-
-// Event: guildMemberRemove
-client.on('guildMemberRemove', async member => {
-    let { guild } = member;
-    let settings = await client.database.server_cache.getGuild(guild.id);
-    if (!settings.gb) return;
-    let ch = await guild.channels.resolve(settings.gb);
-    if (!ch) {
-        settings.gb = undefined;
-        return settings.save();
-    }
-    console.log('Color for info:', config.colors.info); // Debugging statement
-    let emb = new EmbedBuilder()
-        .setColor(config.colors.info)
-        .setTitle('Member Leaved')
-        .setDescription(`${member} leaved from **${guild.name}** Bye Bye`);
-    ch.send({ embeds: [emb] }).catch(() => { });
 });
 
 client.on('interactionCreate', async interaction => {
