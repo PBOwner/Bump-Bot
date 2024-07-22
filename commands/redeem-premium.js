@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const config = require('../config');
-const { premiumCodes } = require('../premiumCodes'); // Import premiumCodes
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,12 +13,14 @@ module.exports = {
     async execute(interaction) {
         const code = interaction.options.getString('code');
 
-        if (!premiumCodes.has(code)) {
+        // Fetch the premium code from the database
+        const premiumCode = await interaction.client.database.PremiumCode.findOne({ where: { code } });
+
+        if (!premiumCode) {
             return interaction.reply({ content: 'Invalid or expired premium code.', ephemeral: true });
         }
 
-        const premiumData = premiumCodes.get(code);
-        if (premiumData.redeemed) {
+        if (premiumCode.redeemed) {
             return interaction.reply({ content: 'This premium code has already been redeemed.', ephemeral: true });
         }
 
@@ -35,14 +36,16 @@ module.exports = {
 
         await guild.save();
 
+        // Mark the premium code as redeemed
+        premiumCode.redeemed = true;
+        await premiumCode.save();
+
         // Verify if the guild was saved correctly
         const savedGuild = await interaction.client.database.server_cache.getGuild(interaction.guild.id);
         console.log('Saved guild:', savedGuild);
 
         // Update the cache
         interaction.client.database.server_cache.set(guild.key, savedGuild);
-
-        premiumCodes.set(code, { ...premiumData, redeemed: true, guildId: interaction.guild.id });
 
         const embed = new EmbedBuilder()
             .setColor(config.colors.success)
