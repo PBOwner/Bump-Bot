@@ -13,6 +13,7 @@ const sequelize = new Sequelize({
     logging: false, // Disable logging if you prefer
 });
 
+// Define the Server model
 const Server = sequelize.define('Server', {
     id: {
         type: DataTypes.INTEGER,
@@ -79,6 +80,29 @@ const Server = sequelize.define('Server', {
     ownerId: {
         type: DataTypes.STRING,
         allowNull: true,
+    },
+}, {
+    timestamps: true,
+});
+
+// Define the PremiumCode model
+const PremiumCode = sequelize.define('PremiumCode', {
+    code: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+    },
+    userId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    expirationDate: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    redeemed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
     },
 }, {
     timestamps: true,
@@ -156,7 +180,7 @@ const initDatabase = async () => {
         console.log(e);
     }
 };
-client.database = { server_cache };
+client.database = { server_cache, PremiumCode };
 
 //==================================================================================================================================================
 // Initialize the Commands
