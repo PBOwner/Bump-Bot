@@ -6,9 +6,10 @@ const { Sequelize, DataTypes } = require('sequelize');
 const config = require('./config');
 const { exec } = require('child_process'); // Import child_process
 
-// Initialize Sequelize
-const sequelize = new Sequelize(config.databaseUrl, {
-    dialect: 'postgres', // or the dialect you are using
+// Initialize Sequelize with SQLite
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: config.sqlitePath,
     logging: false, // Disable logging if you prefer
 });
 
