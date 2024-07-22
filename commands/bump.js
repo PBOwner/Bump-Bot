@@ -27,7 +27,7 @@ module.exports = {
                 embed.setColor(colors.success)
                     .setDescription("Premium is activated for this server.");
                 await interaction.editReply({ embeds: [embed] });
-                startAutoBump(interaction.client, guild);
+                startAutoBump(interaction.client, guild); // Start auto-bumping
                 return;
             }
 
@@ -100,43 +100,7 @@ module.exports = {
                 channel.send({ embeds: [embed.setDescription(interaction.user.tag + ' bumped ' + interaction.guild.name)] });
 
                 // Schedule a reminder to ping the user after 2 hours
-                setTimeout(async () => {
-                    const reminderEmbed = new EmbedBuilder()
-                        .setColor(colors.info)
-                        .setTitle("Bump Reminder")
-                        .addFields(
-                            { name: "<:dot:1262419415400714331> Bump Reminder!", value: "Time to bump! Use `/bump` or click the button below!" },
-                            { name: "<:dot:1262419415400714331> Need help?", value: "Join the support server! Use `/invite` and click Support Server!" }
-                        );
-
-                    try {
-                        const bumpChannel = interaction.client.channels.cache.get(guild.channel);
-                        const message = await bumpChannel.send({ content: `<@${guild.lastBumper}>`, embeds: [reminderEmbed], components: [new ActionRowBuilder().addComponents(
-                            new ButtonBuilder()
-                                .setCustomId('bump')
-                                .setLabel('Bump Now')
-                                .setStyle(ButtonStyle.Success)
-                        )] });
-
-                        // Create a collector to listen for button interactions
-                        const filter = i => i.customId === 'bump' && i.user.id === guild.lastBumper;
-                        const collector = message.createMessageComponentCollector({ filter, time: 7.2e+6 });
-
-                        collector.on('collect', async i => {
-                            await i.update({ components: [] }); // Remove the buttons
-                            await i.followUp({ content: 'Bump button clicked. Buttons have been removed.', ephemeral: true });
-                        });
-
-                        collector.on('end', collected => {
-                            if (collected.size === 0) {
-                                message.edit({ components: [] }); // Remove the buttons if time runs out
-                            }
-                        });
-
-                    } catch (error) {
-                        console.log(`Failed to send bump reminder to channel ${guild.channel}`);
-                    }
-                }, 7.2e+6); // 2 hours in milliseconds
+                setTimeout(() => sendBumpReminder(interaction.client, guild), 7.2e+6); // 2 hours in milliseconds
             }
         } catch (error) {
             console.error(error);
@@ -220,27 +184,44 @@ function startAutoBump(client, guild) {
         channel.send({ embeds: [embed] });
 
         // Schedule a reminder to ping the user after 2 hours
-        setTimeout(async () => {
-            const reminderEmbed = new EmbedBuilder()
-                .setColor(client.colors.info)
-                .setTitle("Bump Reminder")
-                .addFields(
-                    { name: "<:dot:1262419415400714331> Bump Reminder!", value: "Time to bump! Use `/bump` or click the button below!" },
-                    { name: "<:dot:1262419415400714331> Need help?", value: "Join the support server! Use `/invite` and click Support Server!" }
-                );
-
-            try {
-                const bumpChannel = client.channels.cache.get(guild.channel);
-                await bumpChannel.send({ content: `<@${guild.lastBumper}>`, embeds: [reminderEmbed] });
-                await bumpChannel.send({ components: [new ActionRowBuilder().addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('bump')
-                        .setLabel('Bump Again')
-                        .setStyle(ButtonStyle.Success)
-                )] });
-            } catch (error) {
-                console.log(`Failed to send bump reminder to channel ${guild.channel}`);
-            }
-        }, 7.2e+6); // 2 hours in milliseconds
+        setTimeout(() => sendBumpReminder(client, guild), 7.2e+6); // 2 hours in milliseconds
     }, 7.2e+6); // 2 hours in milliseconds
+}
+
+async function sendBumpReminder(client, guild) {
+    const reminderEmbed = new EmbedBuilder()
+        .setColor(client.colors.info)
+        .setTitle("Bump Reminder")
+        .addFields(
+            { name: "<:dot:1262419415400714331> Bump Reminder!", value: "Time to bump! Use `/bump` or click the button below!" },
+            { name: "<:dot:1262419415400714331> Need help?", value: "Join the support server! Use `/invite` and click Support Server!" }
+        );
+
+    try {
+        const bumpChannel = client.channels.cache.get(guild.channel);
+        const message = await bumpChannel.send({ content: `<@${guild.lastBumper}>`, embeds: [reminderEmbed], components: [new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('bump')
+                .setLabel('Bump Now!')
+                .setStyle(ButtonStyle.Success)
+        )] });
+
+        // Create a collector to listen for button interactions
+        const filter = i => i.customId === 'bump' && i.user.id === guild.lastBumper;
+        const collector = message.createMessageComponentCollector({ filter, time: 7.2e+6 });
+
+        collector.on('collect', async i => {
+            await i.update({ components: [] }); // Remove the buttons
+            await i.followUp({ content: 'Bump button clicked. Buttons have been removed.', ephemeral: true });
+        });
+
+        collector.on('end', collected => {
+            if (collected.size === 0) {
+                message.edit({ components: [] }); // Remove the buttons if time runs out
+            }
+        });
+
+    } catch (error) {
+        console.log(`Failed to send bump reminder to channel ${guild.channel}`);
+    }
 }
